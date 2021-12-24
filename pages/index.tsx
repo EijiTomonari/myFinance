@@ -3,6 +3,7 @@ import { useSession, signIn, signOut } from "next-auth/react"
 import type { NextPage } from 'next'
 import { useRouter } from "next/router";
 import { CircularProgress, CircularProgressLabel } from '@chakra-ui/react'
+import Head from 'next/head';
 
 const Home: NextPage = () => {
     const router = useRouter();
@@ -25,10 +26,13 @@ const Home: NextPage = () => {
 
 
     return (
-        <>
-            Signed in as {session?.user?.email} <br />
+        <Flex>
+            <Head>
+                <title>MyFinance</title>
+            </Head>
+            <Text>Signed in as {session?.user?.email}</Text>
             <button onClick={() => signOut()}>Sign out</button>
-        </>
+        </Flex>
     )
 
 
