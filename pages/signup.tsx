@@ -7,7 +7,7 @@ import {
   AlertTitle,
   AlertDescription,FormControl, FormLabel, Text, Flex, Center, Square, Circle, Input, Heading, Button, ButtonGroup,Box,Container } from '@chakra-ui/react'
 
-const Home: NextPage = () => {
+const SignUp: NextPage = () => {
   return (
     <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
       <Head>
@@ -107,4 +107,4 @@ const onFormSubmit = async (props:any) => {
   console.log(data);
 };
 
-export default Home
+export default SignUp

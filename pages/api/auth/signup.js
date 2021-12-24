@@ -13,7 +13,7 @@ async function handler(req, res) {
             return;
         }
         //Connect with database\
-        const uri = "mongodb+srv://MyFinanceDBAdmin:financetest123@cluster0.h7j1y.mongodb.net/myfinance?retryWrites=true&w=majority";
+        const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_CLUSTER}.h7j1y.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
         const client = await MongoClient.connect(uri, { useNewUrlParser: true })
             .catch(err => { console.log(err); });
         if (!client) {
