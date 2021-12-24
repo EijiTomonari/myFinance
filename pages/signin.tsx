@@ -37,8 +37,8 @@ const LoginHeader = () => {
 
 const LoginForm = () => {
 
-  const [username, setusername] = useState("gabrieltomonari@gmail.com")
-  const [password, setpassword] = useState("teste")
+  const [username, setusername] = useState("")
+  const [password, setpassword] = useState("")
   return (
     <Box>
       <form>

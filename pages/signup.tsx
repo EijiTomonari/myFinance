@@ -40,9 +40,9 @@ const LoginHeader = () =>{
 }
 
 const LoginForm = () =>{
-  const [username, setusername] = useState("gabrieltomonari@gmail.com")
-  const [password, setpassword] = useState("teste")
-  const [confirmpassword, setconfirmpassword] = useState("teste")
+  const [username, setusername] = useState("")
+  const [password, setpassword] = useState("")
+  const [confirmpassword, setconfirmpassword] = useState("")
   return(
     <Box>
       <form onSubmit={()=>onFormSubmit({email:username,password:password,confirmpassword:confirmpassword})}>
