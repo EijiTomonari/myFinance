@@ -1,4 +1,4 @@
-import { Flex, Heading, Text } from '@chakra-ui/react'
+import { Button, Flex, Heading, Text } from '@chakra-ui/react'
 import { useSession, signIn, signOut } from "next-auth/react"
 import type { NextPage } from 'next'
 import { useRouter } from "next/router";
@@ -31,7 +31,7 @@ const Home: NextPage = () => {
                 <title>MyFinance</title>
             </Head>
             <Text>Signed in as {session?.user?.email}</Text>
-            <button onClick={() => signOut()}>Sign out</button>
+            <Button onClick={() => signOut()}>Sign Out</Button>
         </Flex>
     )
 
