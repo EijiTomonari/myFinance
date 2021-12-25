@@ -18,7 +18,7 @@ const SignIn: NextPage = () => {
   const router = useRouter();
 
   const { data: session, status } = useSession({
-    required: true,
+    required: false,
   })
 
   if (status === "loading") {
