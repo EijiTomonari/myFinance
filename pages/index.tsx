@@ -48,6 +48,14 @@ export const options = {
     },
 };
 
+export const donutOptions = {
+  plugins: {
+    legend: {
+      position: 'right' as const,
+    }
+}
+}
+
 const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export const data = {
@@ -180,7 +188,7 @@ const MiddleSection = () => {
             <Text fontSize="2xl" fontWeight="bold">R$ 2.000,00</Text>
             <Heading mt={8} mb={4} size="small">Expenses per category</Heading>
             <Flex width="60%" flexDirection="column">
-                <Doughnut data={donutData} />
+                <Doughnut data={donutData} options={donutOptions} />
             </Flex>
             <Heading mt={8} mb={4} size="small">Expenses history</Heading>
             <Line options={options} data={data} />
