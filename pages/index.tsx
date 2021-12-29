@@ -213,20 +213,20 @@ export const donutOptions = {
                         letterSpacing="tight">MyFinance</Heading>
                     <Flex flexDir="column" align="flex-start" justifyContent="center">
                         <Flex className='side-bar-item'>
-                            <Link>
+                            <Link href='/'>
                                 <Icon.Home fontSize="2xl" className="active-icon"/>
                             </Link>
-                            <Link _hover={
+                            <Link href='/' _hover={
                                 {textDecor: 'none'}
                             }>
                                 <Text className='active-text'>Home</Text>
                             </Link>
                         </Flex>
                         <Flex className='side-bar-item'>
-                            <Link>
+                            <Link href='/transactions'>
                                 <Icon.DollarSign fontSize="2xl"/>
                             </Link>
-                            <Link _hover={
+                            <Link href='/transactions' _hover={
                                 {textDecor: 'none'}
                             }>
                                 <Text>Transactions</Text>
