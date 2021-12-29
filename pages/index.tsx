@@ -17,6 +17,9 @@ import {
     ArcElement,
 } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
+import mastercardlogo from '../public/mastercard.png'
+import  visalogo  from "../public/visalogo.png";
+import { Image } from '@chakra-ui/react'
 
 ChartJS.register(
     ArcElement,
@@ -52,6 +55,10 @@ export const donutOptions = {
   plugins: {
     legend: {
       position: 'right' as const,
+      fullSize:true,
+      labels:{
+          padding:10
+      }
     }
 }
 }
@@ -100,8 +107,25 @@ export const donutData = {
 type CreditCardData={
     lastFourDigits:number,
     name:string,
-    validThrough:Date,
-    company:string
+    validThru:string,
+    company:string,
+    nickname: string,
+}
+
+export const mastercardDummyData: CreditCardData={
+    lastFourDigits:4435,
+    name: "Gabriel M Tomonari",
+    validThru: "02/28",
+    company:"MasterCard",
+    nickname: "LatamPass"
+}
+
+export const visaDummyData: CreditCardData={
+    lastFourDigits:4435,
+    name: "Gabriel M Tomonari",
+    validThru: "02/28",
+    company:"Visa",
+    nickname: "Pão de Açúcar"
 }
 
 const Home: NextPage = () => {
@@ -201,12 +225,15 @@ const RightSection = () => {
         <Flex width="35%" backgroundColor="#f5f5f5" overflow="auto" flexDir="column" p="3%">
         <Heading mb={4} fontWeight="light" fontSize="3xl">Credit Cards</Heading>
         <Flex>
-            <Table>
-                <Tr>
+            <Table className='credit-card-table'>
+                <Tr className='active-card'>
                     <Text>Show all cards</Text>
                 </Tr>
                 <Tr>
-                    <Text>Credit Card</Text>
+                    <CreditCardModel creditCardData={mastercardDummyData}/>
+                </Tr>
+                <Tr>
+                    <CreditCardModel creditCardData={visaDummyData}/>
                 </Tr>
             </Table>
         </Flex>
@@ -214,10 +241,20 @@ const RightSection = () => {
     )
 }
 
-const CreditCardModel = (params:CreditCardData) => {
+const CreditCardModel = (params:{creditCardData:CreditCardData}) => {
     return(
-        <Flex>
-            <Text>Last 4 digits:</Text>
+        <Flex boxShadow='2xl' width="80%" height="10em" maxW='260px' bgGradient={params.creditCardData.company=="MasterCard"?'linear(to-br,#A63097,#833BAC)':'linear(to-br,#1E7FB7,#1E3B80)'} borderRadius="10px" flexDirection="column" justifyContent="space-around" color="white"> 
+            <Flex flexDir='row' justifyContent='space-between'>
+                <Text ml={5}>{params.creditCardData.nickname}</Text>
+                <Image mr={5} src={params.creditCardData.company=="MasterCard"?mastercardlogo.src:visalogo.src} layout='fixed' width={50} height={30} objectFit='contain' alignSelf='end'></Image>
+            </Flex>
+            <Flex ml={5} flexDirection="column">
+                <Text fontWeight="bold">{"•••• •••• •••• "+params.creditCardData.lastFourDigits.toString()}</Text>
+                <Flex flexDirection="row" justifyContent='space-between'>
+                    <Text fontSize='small'>{params.creditCardData.name}</Text>
+                    <Text fontSize='small' mr={5}>{params.creditCardData.validThru}</Text>
+                </Flex>
+            </Flex>
         </Flex>
     )
 }

@@ -43,3 +43,26 @@ a {
 .side-bar-item:not(:last-child){
   margin-bottom: 1.5em;
 }
+
+.credit-card-table{
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.credit-card-table tr{
+  cursor:pointer;
+  margin: 0.5em 0;
+  display: block;
+  padding: 0.5em;
+  transition:ease-in-out 0.3s;
+  border-radius: 10px;
+}
+
+.credit-card-table tr:hover{
+  background:  #edeaea;
+  padding-left: 1.2em;
+}
+
+.active-card{
+  background:  #edeaea;
+  padding-left: 1.2em !important;
+}
