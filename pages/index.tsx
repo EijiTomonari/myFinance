@@ -208,8 +208,20 @@ const MiddleSection = () => {
     return (
         <Flex width="55%" p="3%" flexDir="column" overflow="auto" minH="100vh">
             <Heading mb={4} fontWeight="light" fontSize="3xl">Dashboard</Heading>
-            <Text fontSize="sm">December expenses</Text>
-            <Text fontSize="2xl" fontWeight="bold">R$ 2.000,00</Text>
+            <Flex flexDir='row' justifyContent='space-between' align='flex-end'>
+                <Flex flexDir='column' backgroundColor='#edeaea' padding={5} borderRadius='10px'>
+                    <Text fontSize="sm">December expenses</Text>
+                    <Text fontSize="2xl" fontWeight='black'>R$ 2.000,00</Text>
+                </Flex>
+                <Flex flexDir='column' backgroundColor='#edeaea' padding={5} borderRadius='10px'>
+                    <Text fontSize='sm'>Third-party expenses</Text>
+                    <Text fontSize='2xl' fontWeight="bold">R$ 2.000,00</Text>
+                </Flex>
+                <Flex flexDir='column' backgroundColor='#edeaea' padding={5} borderRadius='10px'>
+                    <Text fontSize="sm">Next month installments</Text>
+                    <Text fontSize="2xl" fontWeight="bold">R$ 2.000,00</Text>
+                </Flex>
+            </Flex>
             <Heading mt={8} mb={4} size="small">Expenses per category</Heading>
             <Flex width="60%" flexDirection="column">
                 <Doughnut data={donutData} options={donutOptions} />
