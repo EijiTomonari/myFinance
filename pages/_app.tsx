@@ -1,5 +1,5 @@
 import '../styles/globals.css'
-import type { AppProps } from 'next/app'
+import type { AppContext, AppProps } from 'next/app'
 import { ChakraProvider } from "@chakra-ui/react";
 import { SessionProvider } from "next-auth/react"
 
