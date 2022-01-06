@@ -9,14 +9,15 @@ import {
     Thead,
     Tr,
     Th,
-    Tbody
-} from '@chakra-ui/react';
-import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, InferGetStaticPropsType, NextPage} from 'next';
+    Tbody,
+    Td} from '@chakra-ui/react';
+import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
 import {signOut, useSession} from 'next-auth/react';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React from 'react'
 import * as Icon from 'react-feather';
+import connectToDatabase from "../lib/mongodb";
 
 type Transaction = {
     date: Date,
@@ -27,24 +28,24 @@ type Transaction = {
     category: string
 }
 
-// export const getServerSideProps = async (context: { req: any; }) => {
-//     const { db } = await connectToDatabase(context.req);
-//     const transactions = await db
-//       .collection('transactions')
-//       .find({})
-//       .toArray();
+export const getServerSideProps: GetServerSideProps = async (context: { req: any; }) => {
+    const { db } = await connectToDatabase(context.req);
+    const transactions = await db
+      .collection('transactions')
+      .find({})
+      .toArray();
 
-//       console.log(transactions)
+      console.log(transactions)
 
-//     return {
-//         props: {
-//             results: JSON.parse(JSON.stringify(transactions))
-//         }
-//     };
-// }
+    return {
+        props: {
+            results: JSON.parse(JSON.stringify(transactions))
+        }
+    };
+}
 
 
-const Transactions:NextPage = ({results} : InferGetStaticPropsType<typeof getStaticProps>) => {
+const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof getServerSideProps>) => {
 
     const router = useRouter();
 
@@ -75,23 +76,25 @@ const Transactions:NextPage = ({results} : InferGetStaticPropsType<typeof getSta
                 <Tr>
                     <Th>Date</Th>
                     <Th>Name</Th>
-                    <Th>Installments</Th>
+                    <Th>Installment</Th>
+                    <Th>Total Installments</Th>
                     <Th>Category</Th>
                     <Th>Value</Th>
                 </Tr>
             </Thead>
-            {/* <Tbody> 
-                {data.map((transaction:Transaction) => (
+            <Tbody> 
+                {results.map((transaction:Transaction) => (
           <Tr>
             <Td>{transaction.date}</Td>
             <Td>{transaction.name}</Td>
             <Td>{transaction.installment}</Td>
+            <Td>{transaction.installments}</Td>
+            <Td>{transaction.category}</Td>
+            <Td>{transaction.value}</Td>
           </Tr>
         ))} 
-        </Tbody> */}
+        </Tbody>
         </Table>
-        <Text> {results}</Text>
-        <Text>Funcionou?</Text>
     </Flex>)
 }
 
@@ -155,14 +158,6 @@ const SideBar = (params : any) => {
             }>Sign Out</Button>
         </Flex>
     </Flex>)
-}
-
-export const getStaticProps: GetStaticProps = async (context) => {
-    return {
-        props: {
-            results: [1, 2, 3]
-        }
-    }
 }
 
 export default Transactions
