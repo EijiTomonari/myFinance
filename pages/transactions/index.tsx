@@ -17,7 +17,7 @@ import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React from 'react'
 import * as Icon from 'react-feather';
-import connectToDatabase from "../lib/mongodb";
+import connectToDatabase from "../../lib/mongodb";
 
 type Transaction = {
     date: Date,
@@ -71,7 +71,7 @@ const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof ge
             <title>MyFinance</title>
         </Head>
         <SideBar session={session}/>
-        <Link href='/addTransactions'><Button py={4} px={7}>Add Transactions</Button></Link>
+        <Link href='/transactions/add'><Button py={4} px={7}>Add Transactions</Button></Link>
         <Table>
             <Thead>
                 <Tr>
