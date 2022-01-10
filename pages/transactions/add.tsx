@@ -43,8 +43,11 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
     const [csvFile, setCsvFile] = useState < File | undefined > (undefined);
     const [csvArray, setCsvArray] = useState < Transaction[] > ([]);
     const [adding, setAdding] = useState(false)
+    const [batchadding, setBatchadding] = useState(false)
     const [error, setError] = useState('')
     const [message, setMessage] = useState('')
+    const [batcherror, setBatcherror] = useState('')
+    const [batchmessage, setBatchmessage] = useState('')
     const [value, setValue] = useState < string > ()
     const [name, setName] = useState < string > ()
     const [date, setDate] = useState < Date > ()
@@ -53,8 +56,13 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
     const [installment, setInstallment] = useState < number > (0)
     const [installments, setInstallments] = useState < number > (0)
 
-    const addTransaction = async (transaction : Transaction) => {
-        setAdding(true)
+    const addTransaction = async (transaction : Transaction, type : string) => {
+
+        if (type == "single") {
+            setAdding(true)
+        } else {
+            setBatchadding(true)
+        }
 
         try {
             let response = await fetch('/api/transactions', {
@@ -72,16 +80,32 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                 // set the message
 
                 setAdding(false)
-                return setMessage(data.message);
+                setBatchadding(false)
+                if (type == "single") {
+                    return setMessage(data.message);
+                } else {
+                    return setBatchmessage(data.message);
+                }
+
             } else { // set the error
 
                 setAdding(false)
-                return setError(data.message);
+                setBatchadding(false)
+                if (type == "single") {
+                    return setError(data.message);
+                } else {
+                    return setBatcherror(data.message);
+                }
             }
         } catch (error) {
 
             setAdding(false)
-            return setError(error as string);
+            setBatchadding(false)
+            if (type == "single") {
+                return setError(error as string);
+            } else {
+                return setBatcherror(error as string);
+            }
         }
 
     }
@@ -105,6 +129,10 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
         })
         console.log(newArray)
         setCsvArray(newArray)
+
+        newArray.forEach(transaction => {
+            addTransaction(transaction, "batch")
+        });
     }
 
     const submit = () => {
@@ -243,7 +271,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                             installments: installments,
                             card: card
                         }
-                        addTransaction(newTransaction)
+                        addTransaction(newTransaction, "single")
                     } else {
                         setError("Value, Name, Date, Category and Card are required fields")
                     }
@@ -264,11 +292,11 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
         <Select placeholder='Select Card'
             py={2}
             value={card}
-                onChange={
-                    (e) => {
-                        setCard(e.target.value)
-                    }
-            }> {
+            onChange={
+                (e) => {
+                    setCard(e.target.value)
+                }
+        }> {
             cardsData.map((card : CreditCardData) => (<option value={
                 card.lastfourdigits
             }> {
@@ -282,19 +310,22 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                 }
             }
             py={2}></Input>
-    <Button onClick={
+    <Button type='submit'
+        onClick={
             (e) => {
                 e.preventDefault()
                 if (csvFile) 
                     submit()
-
-
                 
-
-
             }
         }
-        my={2}>Send file</Button>
+        my={2}> {
+        batchadding ? "Adding" : "Batch Add"
+    }</Button>
+    <Text pt={4}
+        color='red'> {batcherror}</Text>
+    <Text pt={4}
+        color='green'> {batchmessage}</Text>
 </form></Flex></Flex></Flex>)
 }
 
