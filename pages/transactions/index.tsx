@@ -10,7 +10,8 @@ import {
     Tr,
     Th,
     Tbody,
-    Td} from '@chakra-ui/react';
+    Td
+} from '@chakra-ui/react';
 import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
 import {signOut, useSession} from 'next-auth/react';
 import Head from 'next/head';
@@ -28,14 +29,13 @@ type Transaction = {
     category: string
 }
 
-export const getServerSideProps: GetServerSideProps = async (context: { req: any; }) => {
-    const { db } = await connectToDatabase(context.req);
-    const transactions = await db
-      .collection('transactions')
-      .find({})
-      .toArray();
+export const getServerSideProps: GetServerSideProps = async (context : {
+    req: any;
+}) => {
+    const {db} = await connectToDatabase(context.req);
+    const transactions = await db.collection('transactions').find({}).toArray();
 
-      console.log(transactions)
+    console.log(transactions)
 
     return {
         props: {
@@ -45,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = async (context: { req: any
 }
 
 
-const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const Transactions: NextPage = ({results} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
     const router = useRouter();
 
@@ -71,31 +71,51 @@ const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof ge
             <title>MyFinance</title>
         </Head>
         <SideBar session={session}/>
-        <Link href='/transactions/add'><Button py={4} px={7}>Add Transactions</Button></Link>
-        <Table>
-            <Thead>
-                <Tr>
-                    <Th>Date</Th>
-                    <Th>Name</Th>
-                    <Th>Installment</Th>
-                    <Th>Total Installments</Th>
-                    <Th>Category</Th>
-                    <Th>Value</Th>
-                </Tr>
-            </Thead>
-            <Tbody> 
-                {results.map((transaction:Transaction) => (
-          <Tr>
-            <Td>{transaction.date}</Td>
-            <Td>{transaction.name}</Td>
-            <Td>{transaction.installment}</Td>
-            <Td>{transaction.installments}</Td>
-            <Td>{transaction.category}</Td>
-            <Td>{"R$ "+transaction.value}</Td>
-          </Tr>
-        ))} 
-        </Tbody>
-        </Table>
+        <Flex flexDir='column' overflowY='auto'>
+            <Link href='/transactions/add'>
+                <Button backgroundColor='green.200'
+                    py={4}
+                    px={7}
+                    my={4}
+                    ml={4}>Add Transactions</Button>
+            </Link>
+            <Table variant='striped'>
+                <Thead>
+                    <Tr>
+                        <Th>Date</Th>
+                        <Th>Name</Th>
+                        <Th>Installment</Th>
+                        <Th>Total Installments</Th>
+                        <Th>Category</Th>
+                        <Th>Value</Th>
+                    </Tr>
+                </Thead>
+                <Tbody fontSize='smaller'> {
+                    results.map((transaction : Transaction) => {
+                        return (<Tr>
+                            <Td> {
+                                new Date(transaction.date).toLocaleDateString("pt-BR")
+                            }</Td>
+                            <Td> {
+                                transaction.name
+                            }</Td>
+                            <Td isNumeric> {
+                                transaction.installment
+                            }</Td>
+                            <Td isNumeric> {
+                                transaction.installments
+                            }</Td>
+                            <Td> {
+                                transaction.category
+                            }</Td>
+                            <Td> {
+                                "R$ " + transaction.value
+                            }</Td>
+                        </Tr>);
+                    })
+                } </Tbody>
+            </Table>
+        </Flex>
     </Flex>)
 }
 
