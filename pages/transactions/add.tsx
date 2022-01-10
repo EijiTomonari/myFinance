@@ -25,17 +25,7 @@ import React, {useState} from 'react'
 import * as Icon from 'react-feather';
 import connectToDatabase from "../../lib/mongodb";
 import {CreditCardData} from '..';
-import {Category} from '../../components/types';
-
-type Transaction = {
-    date: Date,
-    value: number,
-    name: string,
-    installment?: number,
-    installments?: number,
-    category?: string,
-    card: string
-}
+import {Category, Transaction} from '../../components/types';
 
 const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
@@ -270,6 +260,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                             installment: installment,
                             installments: installments,
                             card: card
+                            
                         }
                         addTransaction(newTransaction, "single")
                     } else {

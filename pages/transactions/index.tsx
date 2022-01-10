@@ -10,7 +10,10 @@ import {
     Tr,
     Th,
     Tbody,
-    Td
+    Td,
+    Tooltip,
+    Select,
+    Checkbox
 } from '@chakra-ui/react';
 import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
 import {signOut, useSession} from 'next-auth/react';
@@ -18,38 +21,33 @@ import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React from 'react'
 import * as Icon from 'react-feather';
+import {DeleteIcon, EditIcon, AddIcon} from '@chakra-ui/icons';
 import connectToDatabase from "../../lib/mongodb";
+import { Category, Transaction } from '../../components/types';
 
-type Transaction = {
-    date: Date,
-    value: number,
-    name: string,
-    installment: number,
-    installments: string,
-    category: string
-}
+
 
 export const getServerSideProps: GetServerSideProps = async (context : {
     req: any;
 }) => {
     const {db} = await connectToDatabase(context.req);
-    const transactions = await db.collection('transactions').find({}).toArray();
-
-    console.log(transactions)
+    const transactionsData = await db.collection('transactions').find({}).toArray();
+    const categoriesData = await db.collection('categories').find({}).toArray();
 
     return {
         props: {
-            results: JSON.parse(JSON.stringify(transactions))
+            transactions: JSON.parse(JSON.stringify(transactionsData)),
+            categories: JSON.parse(JSON.stringify(categoriesData))
         }
     };
 }
 
 
-const Transactions: NextPage = ({results} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
+const Transactions: NextPage = ({transactions, categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
     const router = useRouter();
 
-    console.log(results)
+    console.log(categories)
 
     const {data: session, status} = useSession({
         required: true,
@@ -72,14 +70,21 @@ const Transactions: NextPage = ({results} : InferGetServerSidePropsType < typeof
         </Head>
         <SideBar session={session}/>
         <Flex flexDir='column' overflowY='auto'>
+            <Heading mb={2}
+                ml={4}
+                mt={4}
+                fontWeight="light"
+                fontSize="3xl">Transactions</Heading>
             <Link href='/transactions/add'>
-                <Button backgroundColor='green.200'
+                <Button leftIcon={<AddIcon/>}
+                    backgroundColor='green.200'
                     py={4}
                     px={7}
                     my={4}
                     ml={4}>Add Transactions</Button>
             </Link>
-            <Table variant='striped'>
+            <Table variant='striped' width='max' size='sm'
+                ml={4}>
                 <Thead>
                     <Tr>
                         <Th>Date</Th>
@@ -87,11 +92,13 @@ const Transactions: NextPage = ({results} : InferGetServerSidePropsType < typeof
                         <Th>Installment</Th>
                         <Th>Total Installments</Th>
                         <Th>Category</Th>
+                        <Th>Third-party</Th>
                         <Th>Value</Th>
+                        <Th>Actions</Th>
                     </Tr>
                 </Thead>
                 <Tbody fontSize='smaller'> {
-                    results.map((transaction : Transaction) => {
+                    transactions.map((transaction : Transaction) => {
                         return (<Tr>
                             <Td> {
                                 new Date(transaction.date).toLocaleDateString("pt-BR")
@@ -99,18 +106,37 @@ const Transactions: NextPage = ({results} : InferGetServerSidePropsType < typeof
                             <Td> {
                                 transaction.name
                             }</Td>
-                            <Td isNumeric> {
+                            <Td textAlign='center'> {
                                 transaction.installment
                             }</Td>
-                            <Td isNumeric> {
+                            <Td textAlign='center'> {
                                 transaction.installments
                             }</Td>
-                            <Td> {
-                                transaction.category
-                            }</Td>
+                            <Td>
+                                <Select>
+                                    <option value={transaction.category}>{transaction.category}</option>
+                                    {categories.map((category:Category)=>{
+                                        return(<option>{category.name}</option>)
+                                    })}
+                                </Select>
+                            </Td>
+                            <Td textAlign='center'>
+                                    <Checkbox alignSelf='center'></Checkbox>
+                            </Td>
                             <Td> {
                                 "R$ " + transaction.value
                             }</Td>
+                            <Td>
+                                <Flex flexDir='row'>
+                                    <Tooltip label='Edit'>
+                                        <Button name='Edit' colorScheme='yellow'><EditIcon/></Button>
+                                    </Tooltip>
+                                    <Tooltip label='Delete'>
+                                        <Button ml={2}
+                                            colorScheme='red'><DeleteIcon/></Button>
+                                    </Tooltip>
+                                </Flex>
+                            </Td>
                         </Tr>);
                     })
                 } </Tbody>
