@@ -71,6 +71,7 @@ const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof ge
             <title>MyFinance</title>
         </Head>
         <SideBar session={session}/>
+        <Link href='/addTransactions'><Button py={4} px={7}>Add Transactions</Button></Link>
         <Table>
             <Thead>
                 <Tr>
@@ -90,7 +91,7 @@ const Transactions:NextPage = ({results} : InferGetServerSidePropsType<typeof ge
             <Td>{transaction.installment}</Td>
             <Td>{transaction.installments}</Td>
             <Td>{transaction.category}</Td>
-            <Td>{transaction.value}</Td>
+            <Td>{"R$ "+transaction.value}</Td>
           </Tr>
         ))} 
         </Tbody>

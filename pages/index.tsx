@@ -143,26 +143,26 @@ export const donutOptions = {
         ]
     };
 
-    type CreditCardData = {
-        lastFourDigits: number,
+    export type CreditCardData = {
+        lastfourdigits: number,
         name: string,
-        validThru: string,
+        validthru: string,
         company: string,
         nickname: string
     }
 
     export const mastercardDummyData: CreditCardData = {
-        lastFourDigits: 4435,
+        lastfourdigits: 4435,
         name: "Gabriel M Tomonari",
-        validThru: "02/28",
+        validthru: "02/28",
         company: "MasterCard",
         nickname: "LatamPass"
     }
 
     export const visaDummyData: CreditCardData = {
-        lastFourDigits: 4435,
+        lastfourdigits: 4435,
         name: "Gabriel M Tomonari",
-        validThru: "02/28",
+        validthru: "02/28",
         company: "Visa",
         nickname: "Pão de Açúcar"
     }
@@ -389,7 +389,7 @@ export const donutOptions = {
                     flexDirection="column">
                     <Text fontWeight="bold">
                         {
-                        "•••• •••• •••• " + params.creditCardData.lastFourDigits.toString()
+                        "•••• •••• •••• " + params.creditCardData.lastfourdigits.toString()
                     }</Text>
                     <Flex flexDirection="row" justifyContent='space-between'>
                         <Text fontSize='small'>
@@ -399,7 +399,7 @@ export const donutOptions = {
                         <Text fontSize='small'
                             mr={5}>
                             {
-                            params.creditCardData.validThru
+                            params.creditCardData.validthru
                         }</Text>
                     </Flex>
                 </Flex>
