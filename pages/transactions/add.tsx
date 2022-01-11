@@ -14,7 +14,7 @@ import {
     Input,
     InputGroup,
     InputLeftAddon,
-    Select
+    Select,
 } from '@chakra-ui/react';
 import {CalendarIcon} from '@chakra-ui/icons'
 import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';

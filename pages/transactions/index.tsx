@@ -13,18 +13,18 @@ import {
     Td,
     Tooltip,
     Select,
-    Checkbox
+    Checkbox,
+    useToast
 } from '@chakra-ui/react';
 import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
 import {signOut, useSession} from 'next-auth/react';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
-import React from 'react'
+import React, {useState} from 'react'
 import * as Icon from 'react-feather';
 import {DeleteIcon, EditIcon, AddIcon} from '@chakra-ui/icons';
 import connectToDatabase from "../../lib/mongodb";
-import { Category, Transaction } from '../../components/types';
-
+import {Category, TestType, Transaction} from '../../components/types';
 
 
 export const getServerSideProps: GetServerSideProps = async (context : {
@@ -45,10 +45,79 @@ export const getServerSideProps: GetServerSideProps = async (context : {
 
 const Transactions: NextPage = ({transactions, categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
-    const router = useRouter();
+    const router = useRouter()
+    const toast = useToast()
+    const [categorychanger, setCategorychanger] = useState < string > ("Uncategorized")
 
-    console.log(categories)
+    const updateTransactionCategory = async (id : string | undefined, newcategory : string | undefined) => {
+        try {
+            let response = await fetch('/api/transactions', {
+                method: 'PUT',
+                body: JSON.stringify({_id:id, category:newcategory})
+            })
+            let data = await response.json();
+            if (data.success) {
+                return(toast({
+                    title: "OK",
+                    description: "Category changed",
+                    status: 'success',
+                    duration: 1000,
+                    isClosable: true
+                }))
+            } else {
+                return(toast({
+                    title: "Something went wrong",
+                    description: data.message,
+                    status: 'error',
+                    duration: 2000,
+                    isClosable: true
+                }))
+            }
+        } catch (error) {
+            return(toast({
+                title: "Something went wrong",
+                description: error as string,
+                status: 'error',
+                duration: 2000,
+                isClosable: true
+            }))
+        }
+    }
 
+    const deleteTransaction = async (id:string|undefined) => {
+        try {
+            let response = await fetch('/api/transactions',{
+                method: 'DELETE',
+                body: JSON.stringify({_id:id})
+            })
+            let data = await response.json();
+            if (data.success) {
+                return(toast({
+                    title: "OK",
+                    description: "Transaction deleted",
+                    status: 'success',
+                    duration: 1000,
+                    isClosable: true
+                }))
+            } else {
+                return(toast({
+                    title: "Something went wrong",
+                    description: data.message,
+                    status: 'error',
+                    duration: 2000,
+                    isClosable: true
+                }))
+            }
+        } catch (error) {
+            return(toast({
+                title: "Something went wrong",
+                description: error as string,
+                status: 'error',
+                duration: 2000,
+                isClosable: true
+            }))
+        }
+    }
     const {data: session, status} = useSession({
         required: true,
         onUnauthenticated() {
@@ -113,15 +182,27 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                 transaction.installments
                             }</Td>
                             <Td>
-                                <Select>
-                                    <option value={transaction.category}>{transaction.category}</option>
-                                    {categories.map((category:Category)=>{
-                                        return(<option>{category.name}</option>)
-                                    })}
-                                </Select>
+                                <Select onChange={
+                                    (e) => {
+                                        setCategorychanger(e.target.value)
+                                        updateTransactionCategory(transaction._id, categorychanger)
+                                    }
+                                }>
+                                    <option value={
+                                        transaction.category
+                                    }> {
+                                        transaction.category
+                                    }</option>
+                                    {
+                                    categories.map((category : Category) => {
+                                        return (<option value={category.name}> {
+                                            category.name
+                                        }</option>)
+                                    })
+                                } </Select>
                             </Td>
                             <Td textAlign='center'>
-                                    <Checkbox alignSelf='center'></Checkbox>
+                                <Checkbox alignSelf='center'></Checkbox>
                             </Td>
                             <Td> {
                                 "R$ " + transaction.value
@@ -132,7 +213,10 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                         <Button name='Edit' colorScheme='yellow'><EditIcon/></Button>
                                     </Tooltip>
                                     <Tooltip label='Delete'>
-                                        <Button ml={2}
+                                        <Button ml={2} onClick={(e)=> {
+                                            e.preventDefault()
+                                            deleteTransaction(transaction._id)
+                                        }}
                                             colorScheme='red'><DeleteIcon/></Button>
                                     </Tooltip>
                                 </Flex>
