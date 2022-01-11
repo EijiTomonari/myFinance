@@ -48,13 +48,13 @@ const updateTransaction = async (req, res) => {
         const {db} = await connectToDatabase(req);
 
         let body = JSON.parse(req.body)
+        let fields = {...body}
+        delete fields["_id"]
         // update the published status of the post
         const result = await db.collection('transactions').updateOne({
             _id: ObjectId(body._id)
         }, {
-            $set: {
-                category: body.category
-            }
+            $set: fields
         })
         // return a message
         return res.json({message: 'Transaction updated successfully', success: true});

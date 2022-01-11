@@ -20,11 +20,11 @@ import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPag
 import {signOut, useSession} from 'next-auth/react';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import * as Icon from 'react-feather';
 import {DeleteIcon, EditIcon, AddIcon} from '@chakra-ui/icons';
 import connectToDatabase from "../../lib/mongodb";
-import {Category, TestType, Transaction} from '../../components/types';
+import {Category, Transaction} from '../../components/types';
 
 
 export const getServerSideProps: GetServerSideProps = async (context : {
@@ -45,21 +45,38 @@ export const getServerSideProps: GetServerSideProps = async (context : {
 
 const Transactions: NextPage = ({transactions, categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
+    interface TransactionState {
+        id: string | undefined,
+        newcategory: string | undefined,
+        thirdpartyflag: boolean | undefined
+    }
+
     const router = useRouter()
     const toast = useToast()
-    const [categorychanger, setCategorychanger] = useState < string > ("Uncategorized")
+    const [transactionstate, setTransactionstate] = useState < TransactionState > ()
 
-    const updateTransactionCategory = async (id : string | undefined, newcategory : string | undefined) => {
+    useEffect(() => {
+        if (transactionstate) {
+            updateTransaction(transactionstate)
+        }
+    }, [transactionstate])
+
+    const updateTransaction = async (transactionstate : TransactionState) => {
+        if (!transactionstate.id) {
+            return
+        }
         try {
             let response = await fetch('/api/transactions', {
                 method: 'PUT',
-                body: JSON.stringify({_id:id, category:newcategory})
+                body: JSON.stringify(
+                    {_id: transactionstate.id, category: transactionstate.newcategory, thirdparty: transactionstate.thirdpartyflag}
+                )
             })
             let data = await response.json();
             if (data.success) {
                 return(toast({
                     title: "OK",
-                    description: "Category changed",
+                    description: "Transaction updated",
                     status: 'success',
                     duration: 1000,
                     isClosable: true
@@ -84,11 +101,13 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
         }
     }
 
-    const deleteTransaction = async (id:string|undefined) => {
+    const deleteTransaction = async (id : string | undefined) => {
         try {
-            let response = await fetch('/api/transactions',{
+            let response = await fetch('/api/transactions', {
                 method: 'DELETE',
-                body: JSON.stringify({_id:id})
+                body: JSON.stringify(
+                    {_id: id}
+                )
             })
             let data = await response.json();
             if (data.success) {
@@ -182,10 +201,11 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                 transaction.installments
                             }</Td>
                             <Td>
-                                <Select onChange={
+                                <Select 
+                                id={transaction._id+"select"}
+                                onChange={
                                     (e) => {
-                                        setCategorychanger(e.target.value)
-                                        updateTransactionCategory(transaction._id, categorychanger)
+                                        setTransactionstate({id: transaction._id, newcategory: e.target.value, thirdpartyflag: transaction.thirdparty})
                                     }
                                 }>
                                     <option value={
@@ -195,33 +215,51 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                     }</option>
                                     {
                                     categories.map((category : Category) => {
-                                        return (<option value={category.name}> {
+                                        return (<option value={
+                                            category.name
+                                        }> {
                                             category.name
                                         }</option>)
                                     })
                                 } </Select>
                             </Td>
                             <Td textAlign='center'>
-                                <Checkbox alignSelf='center'></Checkbox>
-                            </Td>
-                            <Td> {
-                                "R$ " + transaction.value
-                            }</Td>
-                            <Td>
-                                <Flex flexDir='row'>
-                                    <Tooltip label='Edit'>
-                                        <Button name='Edit' colorScheme='yellow'><EditIcon/></Button>
-                                    </Tooltip>
-                                    <Tooltip label='Delete'>
-                                        <Button ml={2} onClick={(e)=> {
-                                            e.preventDefault()
-                                            deleteTransaction(transaction._id)
-                                        }}
-                                            colorScheme='red'><DeleteIcon/></Button>
-                                    </Tooltip>
-                                </Flex>
-                            </Td>
-                        </Tr>);
+                                <Checkbox alignSelf='center'
+                                    defaultChecked={
+                                        transaction.thirdparty
+                                    }
+                                    id={transaction._id+"checkbox"}
+                                    onChange={
+                                        (e) => {
+                                            if (e.target.checked) {
+                                                setTransactionstate({id: transaction._id, newcategory: transaction.category, thirdpartyflag: true})
+                                            } else {
+                                                setTransactionstate({id: transaction._id, newcategory: transaction.category, thirdpartyflag: false})
+                                            }
+                                        }
+                                }></Checkbox>
+                        </Td>
+                        <Td> {
+                            "R$ " + transaction.value
+                        }</Td>
+                        <Td>
+                            <Flex flexDir='row'>
+                                <Tooltip label='Edit'>
+                                    <Button name='Edit' colorScheme='yellow'><EditIcon/></Button>
+                                </Tooltip>
+                                <Tooltip label='Delete'>
+                                    <Button ml={2}
+                                        onClick={
+                                            (e) => {
+                                                e.preventDefault()
+                                                deleteTransaction(transaction._id)
+                                            }
+                                        }
+                                        colorScheme='red'><DeleteIcon/></Button>
+                                </Tooltip>
+                            </Flex>
+                        </Td>
+                    </Tr>);
                     })
                 } </Tbody>
             </Table>

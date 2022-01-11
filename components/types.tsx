@@ -10,11 +10,6 @@ export type Transaction = {
     thirdparty?: boolean,
 }
 
-export type TestType ={
-    _id:string,
-    category: string
-}
-
 export type Category = {
     _id: string,
     name: string,
