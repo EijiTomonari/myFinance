@@ -320,6 +320,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                             (e) => {
                                                 e.preventDefault()
                                                 deleteTransaction(transaction._id)
+                                                fetchTransactions(limit,skip)
                                             }
                                         }
                                         colorScheme='red'><DeleteIcon/></Button>
