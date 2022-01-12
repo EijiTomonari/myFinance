@@ -22,7 +22,13 @@ import Head from 'next/head';
 import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react'
 import * as Icon from 'react-feather';
-import {DeleteIcon, EditIcon, AddIcon} from '@chakra-ui/icons';
+import {
+    DeleteIcon,
+    EditIcon,
+    AddIcon,
+    ArrowBackIcon,
+    ArrowForwardIcon
+} from '@chakra-ui/icons';
 import connectToDatabase from "../../lib/mongodb";
 import {Category, Transaction} from '../../components/types';
 
@@ -31,19 +37,17 @@ export const getServerSideProps: GetServerSideProps = async (context : {
     req: any;
 }) => {
     const {db} = await connectToDatabase(context.req);
-    const transactionsData = await db.collection('transactions').find({}).toArray();
     const categoriesData = await db.collection('categories').find({}).toArray();
 
     return {
         props: {
-            transactions: JSON.parse(JSON.stringify(transactionsData)),
             categories: JSON.parse(JSON.stringify(categoriesData))
         }
     };
 }
 
 
-const Transactions: NextPage = ({transactions, categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
+const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
     interface TransactionState {
         id: string | undefined,
@@ -51,13 +55,49 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
         thirdpartyflag: boolean | undefined
     }
 
+    const fetchTransactions = async (limit : number, skip : number) => {
+        setLoading(true)
+        try {
+            let response = await fetch(`/api/transactions?limit=${limit}&skip=${skip}`, {method: 'GET'})
+            let data = await response.json()
+            setTransactions(data.message)
+            setLoading(false)
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
+        }
+    }
+
     const router = useRouter()
     const toast = useToast()
+    const [editing, setEditing] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    // Pagination states and effects ------------
+    const [transactions, setTransactions] = useState([]);
+    const [collectionsize, setCollectionsize] = useState(0)
+    const [limit, setLimit] = useState(30);
+    const [skip, setSkip] = useState(0);
+
+    const nextPage = () => {
+        setSkip(skip + limit)
+    }
+
+    const previousPage = () => {
+        setSkip(skip - limit)
+    }
+
+    useEffect(() => {
+        fetchTransactions(limit, skip)
+    }, [skip, limit])
+    // -----------------------------------------
+
     const [transactionstate, setTransactionstate] = useState < TransactionState > ()
 
     useEffect(() => {
         if (transactionstate) {
             updateTransaction(transactionstate)
+            fetchTransactions(limit, skip)
         }
     }, [transactionstate])
 
@@ -65,6 +105,7 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
         if (!transactionstate.id) {
             return
         }
+        setEditing(true)
         try {
             let response = await fetch('/api/transactions', {
                 method: 'PUT',
@@ -74,6 +115,7 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
             })
             let data = await response.json();
             if (data.success) {
+                setEditing(false)
                 return(toast({
                     title: "OK",
                     description: "Transaction updated",
@@ -82,6 +124,7 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                     isClosable: true
                 }))
             } else {
+                setEditing(false)
                 return(toast({
                     title: "Something went wrong",
                     description: data.message,
@@ -91,6 +134,7 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                 }))
             }
         } catch (error) {
+            setEditing(false)
             return(toast({
                 title: "Something went wrong",
                 description: error as string,
@@ -151,6 +195,13 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
         </Flex>)
     }
 
+    if (loading) {
+
+        return (<Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
+            <CircularProgress isIndeterminate color='green.300'/>
+        </Flex>)
+    }
+
 
     return (<Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
         <Head>
@@ -163,14 +214,28 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                 mt={4}
                 fontWeight="light"
                 fontSize="3xl">Transactions</Heading>
-            <Link href='/transactions/add'>
-                <Button leftIcon={<AddIcon/>}
-                    backgroundColor='green.200'
-                    py={4}
-                    px={7}
-                    my={4}
-                    ml={4}>Add Transactions</Button>
-            </Link>
+            <Flex flexDir='row' justifyContent='space-between'>
+                <Link href='/transactions/add'>
+                    <Button leftIcon={<AddIcon/>}
+                        backgroundColor='green.200'
+                        py={4}
+                        px={7}
+                        my={4}
+                        ml={4}>Add Transactions</Button>
+                </Link>
+                <Flex flexDir='row' alignSelf='center'
+                    mr={4}>
+                    <Button isDisabled={
+                            skip == 0
+                        }
+                        onClick={previousPage}
+                        mr={4}><ArrowBackIcon/></Button>
+                    <Button isDisabled={
+                            transactions.length < 30
+                        }
+                        onClick={nextPage}><ArrowForwardIcon/></Button>
+                </Flex>
+            </Flex>
             <Table variant='striped' width='max' size='sm'
                 ml={4}>
                 <Thead>
@@ -201,12 +266,11 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                 transaction.installments
                             }</Td>
                             <Td>
-                                <Select 
-                                id={transaction._id+"select"}
-                                onChange={
-                                    (e) => {
-                                        setTransactionstate({id: transaction._id, newcategory: e.target.value, thirdpartyflag: transaction.thirdparty})
-                                    }
+                                <Select isDisabled={editing}
+                                    onChange={
+                                        (e) => {
+                                            setTransactionstate({id: transaction._id, newcategory: e.target.value, thirdpartyflag: transaction.thirdparty})
+                                        }
                                 }>
                                     <option value={
                                         transaction.category
@@ -224,11 +288,14 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                                 } </Select>
                             </Td>
                             <Td textAlign='center'>
-                                <Checkbox alignSelf='center'
+                                <Checkbox isDisabled={editing}
+                                    alignSelf='center'
                                     defaultChecked={
                                         transaction.thirdparty
                                     }
-                                    id={transaction._id+"checkbox"}
+                                    id={
+                                        transaction._id + "checkbox"
+                                    }
                                     onChange={
                                         (e) => {
                                             if (e.target.checked) {
@@ -263,6 +330,21 @@ const Transactions: NextPage = ({transactions, categories} : InferGetServerSideP
                     })
                 } </Tbody>
             </Table>
+            <Flex flexDir='row' alignSelf='flex-end'
+                mr={4}
+                my={2}
+                justifyContent='end'>
+
+                <Button isDisabled={
+                        skip == 0
+                    }
+                    onClick={previousPage}
+                    mr={4}><ArrowBackIcon/></Button>
+                <Button isDisabled={
+                        transactions.length < 30
+                    }
+                    onClick={nextPage}><ArrowForwardIcon/></Button>
+            </Flex>
         </Flex>
     </Flex>)
 }

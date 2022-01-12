@@ -26,10 +26,31 @@ export default async function (req, res) { // switch the methods
 }
 
 const getTransactions = async (req, res) => {
-    const {db} = await connectToDatabase(req);
-    const transactions = await db.collection('transactions').find({}).toArray();
-    res.json(transactions);
-};
+    try {
+        // connect to the database
+        let { db } = await connectToDatabase(req);
+        // fetch the posts
+        let size = await db.collection('transactions').count()
+
+        let transactions = await db
+            .collection('transactions')
+            .find({})
+            .skip(parseInt(req.query.skip)).limit(parseInt(req.query.limit))
+            .toArray();
+        // return the transactions
+        return res.json({
+            message: JSON.parse(JSON.stringify(transactions)),
+            success: true,
+            size: size,
+        });
+    } catch (error) {
+        // return the error
+        return res.json({
+            message: new Error(error).message,
+            success: false,
+        });
+    }
+}
 
 const addTransaction = async (req, res) => {
     try {
