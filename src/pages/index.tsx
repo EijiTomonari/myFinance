@@ -32,8 +32,8 @@ import {
     ArcElement
 } from 'chart.js';
 import {Doughnut, Line} from 'react-chartjs-2';
-import mastercardlogo from '../public/mastercard.png'
-import visalogo from "../public/visalogo.png";
+import mastercardlogo from '../../public/mastercard.png'
+import visalogo from "../../public/visalogo.png";
 import {Image} from '@chakra-ui/react'
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);

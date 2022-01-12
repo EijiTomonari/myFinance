@@ -14,7 +14,18 @@ import {
     Tooltip,
     Select,
     Checkbox,
-    useToast
+    useToast,
+    useDisclosure,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
+    Input,
+    InputGroup,
+    InputLeftAddon
 } from '@chakra-ui/react';
 import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
 import {signOut, useSession} from 'next-auth/react';
@@ -34,10 +45,12 @@ import {
     EditIcon,
     AddIcon,
     ArrowBackIcon,
-    ArrowForwardIcon
+    ArrowForwardIcon,
+    CalendarIcon
 } from '@chakra-ui/icons';
-import connectToDatabase from "../../lib/mongodb";
-import {Category, Transaction} from '../../components/types';
+import connectToDatabase from "../../modules/mongodb/mongodb";
+import {Category, Transaction} from '../../common/types/types';
+import EditModal from '../../common/components/elements/editTransactionForm/editTransactionForm';
 
 
 export const getServerSideProps: GetServerSideProps = async (context : {
@@ -54,8 +67,7 @@ export const getServerSideProps: GetServerSideProps = async (context : {
 }
 
 
-const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
-
+const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => { // Transaction Data manipulation -----------------------------
     interface TransactionState {
         id: string | undefined,
         newcategory: string | undefined,
@@ -74,54 +86,6 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
             setLoading(false)
         }
     }
-
-    const router = useRouter()
-    const toast = useToast()
-    const [editing, setEditing] = useState(false)
-    const [loading, setLoading] = useState(false)
-
-    // Pagination ------------------------------
-    const [transactions, setTransactions] = useState([]);
-    const [collectionsize, setCollectionsize] = useState(0)
-    const [limit, setLimit] = useState(30);
-    const [skip, setSkip] = useState(0);
-
-    const nextPage = () => {
-        setSkip(skip + limit)
-    }
-
-    const previousPage = () => {
-        setSkip(skip - limit)
-    }
-
-    useEffect(() => {
-        fetchTransactions(limit, skip)
-    }, [skip, limit])
-    // -----------------------------------------
-
-    // Pin Scroll ------------------------------
-    const [reference, setReference] = useState < any > ()
-    const [scrollposition, setScrollposition] = useState(0)
-
-    const elRef = useCallback(node => {
-        if (node !== null) {
-            setReference(node)
-        }
-    }, []);
-
-    const onScroll = () => {
-        setScrollposition(reference.scrollTop)
-        console.log(scrollposition)
-    }
-
-    useEffect(() => {
-        if (!reference) {
-            return
-        }
-        console.log("Acknowledged")
-        reference.scrollTo(0, scrollposition)
-    }, [reference])
-    // -----------------------------------------
 
     const [transactionstate, setTransactionstate] = useState < TransactionState > ()
 
@@ -212,6 +176,72 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
             }))
         }
     }
+    // -----------------------------------------------------------
+
+
+    // Pagination ------------------------------
+    const [transactions, setTransactions] = useState([]);
+    const [collectionsize, setCollectionsize] = useState(0)
+    const [limit, setLimit] = useState(30);
+    const [skip, setSkip] = useState(0);
+
+    const nextPage = () => {
+        setSkip(skip + limit)
+    }
+
+    const previousPage = () => {
+        setSkip(skip - limit)
+    }
+
+    useEffect(() => {
+        fetchTransactions(limit, skip)
+    }, [skip, limit])
+    // -----------------------------------------
+
+    // Pin Scroll ------------------------------
+    const [reference, setReference] = useState < any > ()
+    const [scrollposition, setScrollposition] = useState(0)
+
+    const elRef = useCallback(node => {
+        if (node !== null) {
+            setReference(node)
+        }
+    }, []);
+
+    const onScroll = () => {
+        setScrollposition(reference.scrollTop)
+        console.log(scrollposition)
+    }
+
+    useEffect(() => {
+        if (!reference) {
+            return
+        }
+        console.log("Acknowledged")
+        reference.scrollTo(0, scrollposition)
+    }, [reference])
+    // -----------------------------------------
+
+    // Modal ------------------------------
+    const {isOpen, onOpen, onClose} = useDisclosure()
+    const [transactiontobeedited, setTransactiontobeedited] = useState < Transaction > ({
+        _id: "",
+        date: new Date(),
+        value: 0,
+        name: "",
+        card: "",
+        installment: 0,
+        installments: 0,
+        category: "",
+        thirdparty: false
+
+    })
+
+    const router = useRouter()
+    const toast = useToast()
+    const [editing, setEditing] = useState(false)
+    const [loading, setLoading] = useState(false)
+
     const {data: session, status} = useSession({
         required: true,
         onUnauthenticated() {
@@ -254,6 +284,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                     fontWeight="light"
                     fontSize="3xl">Transactions</Heading>
                 <Flex flexDir='row' justifyContent='space-between'>
+                    <EditModal isOpen={isOpen}
+                        onClose={onClose}
+                        transaction={transactiontobeedited}/>
                     <Link href='/transactions/add'>
                         <Button leftIcon={<AddIcon/>}
                             backgroundColor='green.200'
@@ -359,7 +392,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                 <Td>
                                     <Flex flexDir='row'>
                                         <Tooltip label='Edit'>
-                                            <Button name='Edit' colorScheme='yellow'><EditIcon/></Button>
+                                            <Button onClick={onOpen}
+                                                name='Edit'
+                                                colorScheme='yellow'><EditIcon/></Button>
                                         </Tooltip>
                                         <Tooltip label='Delete'>
                                             <Button ml={2}

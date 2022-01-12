@@ -1,4 +1,4 @@
-import connectToDatabase from '../../lib/mongodb';
+import connectToDatabase from '../../modules/mongodb/mongodb'
 import {ObjectId} from 'mongodb';
 
 export default async function (req, res) { // switch the methods
