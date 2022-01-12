@@ -87,25 +87,22 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
         }
     }
 
-    const [transactionstate, setTransactionstate] = useState < TransactionState > ()
+    const updateTransaction = async (newTransaction : Transaction) => {
+        const newTransactions:Transaction[] = [...transactions];
 
-    useEffect(() => {
-        if (transactionstate) {
-            updateTransaction(transactionstate)
-            fetchTransactions(limit, skip)
-        }
-    }, [transactionstate])
+        const index = transactions.findIndex( (transaction: Transaction) => transaction._id == newTransaction._id )
 
-    const updateTransaction = async (transactionstate : TransactionState) => {
-        if (!transactionstate.id) {
-            return
-        }
+        newTransactions[index] = newTransaction
+
+        // debugger;
+        setTransactions(newTransactions);
+
         setEditing(true)
         try {
             let response = await fetch('/api/transactions', {
                 method: 'PUT',
                 body: JSON.stringify(
-                    {_id: transactionstate.id, category: transactionstate.newcategory, thirdparty: transactionstate.thirdpartyflag}
+                    {_id: newTransaction._id, category: newTransaction.category, thirdparty: newTransaction.thirdparty}
                 )
             })
             let data = await response.json();
@@ -180,7 +177,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
 
 
     // Pagination ------------------------------
-    const [transactions, setTransactions] = useState([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [collectionsize, setCollectionsize] = useState(0)
     const [limit, setLimit] = useState(30);
     const [skip, setSkip] = useState(0);
@@ -249,23 +246,23 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
         }
     })
 
-    if (status === "loading") {
+    // if (status === "loading") {
 
-        return (
-            <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
-                <CircularProgress isIndeterminate color='green.300'/>
-            </Flex>
-        )
-    }
+    //     return (
+    //         <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
+    //             <CircularProgress isIndeterminate color='green.300'/>
+    //         </Flex>
+    //     )
+    // }
 
-    if (loading) {
+    // if (loading) {
 
-        return (
-            <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
-                <CircularProgress isIndeterminate color='green.300'/>
-            </Flex>
-        )
-    }
+    //     return (
+    //         <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
+    //             <CircularProgress isIndeterminate color='green.300'/>
+    //         </Flex>
+    //     )
+    // }
 
 
     return (
@@ -308,7 +305,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                             onClick={nextPage}><ArrowForwardIcon/></Button>
                     </Flex>
                 </Flex>
-                <Table variant='striped' width='max' size='sm'
+                
+                { !loading && 
+                    <Table variant='striped' width='max' size='sm'
                     ml={4}>
                     <Thead>
                         <Tr>
@@ -326,7 +325,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                         {
                         transactions.map((transaction : Transaction) => {
                             return (
-                                <Tr>
+                                <Tr key={transaction._id}>
                                     <Td> {
                                         new Date(transaction.date).toLocaleDateString("pt-BR")
                                     }</Td>
@@ -342,10 +341,11 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                         transaction.installments
                                     }</Td>
                                     <Td>
-                                        <Select isDisabled={editing}
+                                        <Select
                                             onChange={
                                                 (e) => {
-                                                    setTransactionstate({id: transaction._id, newcategory: e.target.value, thirdpartyflag: transaction.thirdparty})
+                                                    const newTransaction: Transaction = {...transaction, category: e.target.value}
+                                                    updateTransaction(newTransaction)
                                                 }
                                         }>
                                             <option value={
@@ -368,21 +368,15 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                         } </Select>
                                     </Td>
                                     <Td textAlign='center'>
-                                        <Checkbox isDisabled={editing}
+                                        <Checkbox
                                             alignSelf='center'
                                             defaultChecked={
                                                 transaction.thirdparty
                                             }
-                                            id={
-                                                transaction._id + "checkbox"
-                                            }
                                             onChange={
                                                 (e) => {
-                                                    if (e.target.checked) {
-                                                        setTransactionstate({id: transaction._id, newcategory: transaction.category, thirdpartyflag: true})
-                                                    } else {
-                                                        setTransactionstate({id: transaction._id, newcategory: transaction.category, thirdpartyflag: false})
-                                                    }
+                                                    const newTransaction: Transaction = {...transaction, thirdparty: e.target.checked }
+                                                    updateTransaction(newTransaction)
                                                 }
                                         }></Checkbox>
                                 </Td>
@@ -414,6 +408,8 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                         })
                     } </Tbody>
                 </Table>
+                }
+                
                 <Flex flexDir='row' alignSelf='flex-end'
                     mr={4}
                     my={2}

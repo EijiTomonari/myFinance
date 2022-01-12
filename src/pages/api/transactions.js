@@ -90,7 +90,6 @@ const deleteTransaction = async (req, res) => {
 
         // Deleting the post
         let body = JSON.parse(req.body)
-        const document = await db.collection('transactions').findOne({_id: ObjectId("61dc5869055e6e1fc2c81284")})
 
         const result = await db.collection('transactions').deleteOne({
             _id: ObjectId(body._id)
