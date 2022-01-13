@@ -28,8 +28,10 @@ export default NextAuth({ // Configure JWT
 
                             throw new Error('Password doesnt match');
                         }
-                        
-                        return {email: user.email};
+
+                        console.log(user)
+
+                        return {email: user.email, id:user._id};
 
                     } catch (err) {
                         console.log(err);
@@ -40,10 +42,12 @@ export default NextAuth({ // Configure JWT
         ),
     ],
     callbacks: {
-        async session(
-            {session, token, user}
-        ) { // Send properties to the client, like an access_token from a provider.
-            session.accessToken = token.accessToken
+        async jwt ({ token, user }){
+            user && (token.user = user)
+            return token
+        },
+        async session ({ session, token }){
+            session.user = token.user
             return session
         }
     },
