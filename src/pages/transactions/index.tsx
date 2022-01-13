@@ -215,7 +215,6 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
 
-    
 
     const {data: session, status} = useSession({
         required: true,
@@ -286,10 +285,10 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                 <Tr key={
                                     transaction._id
                                 }>
-                                    <Td> {
+                                    <Td>{
                                         new Date(transaction.date).toLocaleDateString("pt-BR")
                                     }</Td>
-                                    <Td> {
+                                    <Td>{
                                         transaction.name
                                     }</Td>
                                     <Td textAlign='center'>
@@ -319,15 +318,18 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                             {
                                             categories.map((category : Category) => {
                                                 return (
-                                                    <option value={
-                                                        category.name
+                                                    <option key={
+                                                            category.name
+                                                        }
+                                                        value={
+                                                            category.name
                                                     }>
                                                         {
                                                         category.name
                                                     }</option>
                                                 )
                                             })
-                                        } </Select>
+                                        }</Select>
                                     </Td>
                                     <Td textAlign='center'>
                                         <Checkbox alignSelf='center'
@@ -344,7 +346,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                                 }
                                         }></Checkbox>
                                 </Td>
-                                <Td> {
+                                <Td>{
                                     "R$ " + transaction.value
                                 }</Td>
                                 <Td>

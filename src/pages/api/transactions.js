@@ -1,5 +1,6 @@
 import connectToDatabase from '../../modules/mongodb/mongodb'
 import {ObjectId} from 'mongodb';
+import {getSession} from "next-auth/react"
 
 export default async function (req, res) { // switch the methods
     switch (req.method) {
@@ -15,12 +16,13 @@ export default async function (req, res) { // switch the methods
 }
 
 const getTransactions = async (req, res) => {
+    const session = await getSession({req})
     try { // connect to the database
         let {db} = await connectToDatabase();
         // fetch the posts
         let size = await db.collection('transactions').count()
 
-        let transactions = await db.collection('transactions').find({}).skip(parseInt(req.query.skip)).limit(parseInt(req.query.limit)).toArray();
+        let transactions = await db.collection('transactions').find({uid:session.user.id}).skip(parseInt(req.query.skip)).limit(parseInt(req.query.limit)).toArray();
         // return the transactions
         return res.json({
             message: JSON.parse(JSON.stringify(transactions)),
