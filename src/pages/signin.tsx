@@ -20,26 +20,26 @@ const SignIn: NextPage = () => { // Checks if user is already authenticated. If 
 
     const [username, setusername] = useState("")
     const [password, setpassword] = useState("")
-    const [signinstatus, setSigninstatus] = useState < SignInResponse > ()
+    const [status, setstatus] = useState < SignInResponse > ()
     const [error, seterror] = useState < string | undefined > (undefined)
     const router = useRouter()
 
     useEffect(() => {
-        if (signinstatus ?. ok) {
+        if (status ?. ok) {
             router.replace('/')
         } else {
-            seterror(signinstatus ?. error)
+            seterror(status ?. error)
         }
-    }, [signinstatus])
+    }, [status])
 
     const HandleSubmit = async (event : FormEvent < HTMLFormElement >) => {
         event.preventDefault()
-        const status = await signIn('credentials', {
+        const res = await signIn('credentials', {
             email: username,
             password: password,
             redirect: false
         });
-        setSigninstatus(status)
+        setstatus(res)
     }
 
     return (

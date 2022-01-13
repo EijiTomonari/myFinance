@@ -3,7 +3,7 @@ import { hash } from 'bcryptjs';
 
 async function handler(req, res) {
 
-    //Only POST mothod is accepted
+    //Only POST method is accepted
     if (req.method === 'POST') {
         //Getting email and password from body
         const { email, password } = req.body;
@@ -22,7 +22,7 @@ async function handler(req, res) {
         try {
 
 
-            const collection = client.db("myfinance").collection("users");
+            const collection = client.db(process.env.MONGO_DB).collection(process.env.MONGO_USERS);
 
             const checkExisting = await collection.findOne({ email: email });
 

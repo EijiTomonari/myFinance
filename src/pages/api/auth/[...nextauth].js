@@ -22,7 +22,7 @@ export default NextAuth({
                 }
 
                 try {
-                    const collection = client.db("myfinance").collection("users");
+                    const collection = client.db(process.env.MONGO_DB).collection(process.env.MONGO_USERS);
                     const result = await collection.findOne({
                         email: credentials.email,
                     });
@@ -47,4 +47,5 @@ export default NextAuth({
             },
         }),
     ],
+    secret:process.env.NEXTAUTH_SECRET
 })
