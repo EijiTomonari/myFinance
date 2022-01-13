@@ -3,25 +3,10 @@ import {ObjectId} from 'mongodb';
 
 export default async function (req, res) { // switch the methods
     switch (req.method) {
-        case 'GET':
-            {
-                return getTransactions(req, res);
-            }
-
-        case 'POST':
-            {
-                return addTransaction(req, res);
-            }
-
-        case 'PUT':
-            {
-                return updateTransaction(req, res);
-            }
-
-        case 'DELETE':
-            {
-                return deleteTransaction(req, res);
-            }
+        case 'GET': return getTransactions(req, res);
+        case 'POST': return addTransaction(req, res);
+        case 'PUT': return updateTransaction(req, res);
+        case 'DELETE': return deleteTransaction(req, res);
     }
 }
 
