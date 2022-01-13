@@ -88,9 +88,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
     }
 
     const updateTransaction = async (newTransaction : Transaction) => {
-        const newTransactions:Transaction[] = [...transactions];
+        const newTransactions: Transaction[] = [...transactions];
 
-        const index = transactions.findIndex( (transaction: Transaction) => transaction._id == newTransaction._id )
+        const index = transactions.findIndex((transaction : Transaction) => transaction._id == newTransaction._id)
 
         newTransactions[index] = newTransaction
 
@@ -177,7 +177,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
 
 
     // Pagination ------------------------------
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [transactions, setTransactions] = useState < Transaction[] > ([]);
     const [collectionsize, setCollectionsize] = useState(0)
     const [limit, setLimit] = useState(30);
     const [skip, setSkip] = useState(0);
@@ -193,30 +193,6 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
     useEffect(() => {
         fetchTransactions(limit, skip)
     }, [skip, limit])
-    // -----------------------------------------
-
-    // Pin Scroll ------------------------------
-    const [reference, setReference] = useState < any > ()
-    const [scrollposition, setScrollposition] = useState(0)
-
-    const elRef = useCallback(node => {
-        if (node !== null) {
-            setReference(node)
-        }
-    }, []);
-
-    const onScroll = () => {
-        setScrollposition(reference.scrollTop)
-        console.log(scrollposition)
-    }
-
-    useEffect(() => {
-        if (!reference) {
-            return
-        }
-        console.log("Acknowledged")
-        reference.scrollTo(0, scrollposition)
-    }, [reference])
     // -----------------------------------------
 
     // Modal ------------------------------
@@ -239,6 +215,8 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
 
+    
+
     const {data: session, status} = useSession({
         required: true,
         onUnauthenticated() {
@@ -246,24 +224,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
         }
     })
 
-    // if (status === "loading") {
-
-    //     return (
-    //         <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
-    //             <CircularProgress isIndeterminate color='green.300'/>
-    //         </Flex>
-    //     )
-    // }
-
-    // if (loading) {
-
-    //     return (
-    //         <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
-    //             <CircularProgress isIndeterminate color='green.300'/>
-    //         </Flex>
-    //     )
-    // }
-
+    console.log(session)
 
     return (
         <Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
@@ -271,10 +232,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                 <title>MyFinance</title>
             </Head>
             <SideBar session={session}/>
-            <Flex flexDir='column' overflowY='auto'
-                ref={elRef}
-                id='transactionContainer'
-                onScroll={onScroll}>
+            <Flex flexDir='column' overflowY='auto'>
                 <Heading mb={2}
                     ml={4}
                     mt={4}
@@ -305,9 +263,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                             onClick={nextPage}><ArrowForwardIcon/></Button>
                     </Flex>
                 </Flex>
-                
-                { !loading && 
-                    <Table variant='striped' width='max' size='sm'
+
+                {
+                !loading && <Table variant='striped' width='max' size='sm'
                     ml={4}>
                     <Thead>
                         <Tr>
@@ -325,7 +283,9 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                         {
                         transactions.map((transaction : Transaction) => {
                             return (
-                                <Tr key={transaction._id}>
+                                <Tr key={
+                                    transaction._id
+                                }>
                                     <Td> {
                                         new Date(transaction.date).toLocaleDateString("pt-BR")
                                     }</Td>
@@ -341,12 +301,14 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                         transaction.installments
                                     }</Td>
                                     <Td>
-                                        <Select
-                                            onChange={
-                                                (e) => {
-                                                    const newTransaction: Transaction = {...transaction, category: e.target.value}
-                                                    updateTransaction(newTransaction)
+                                        <Select onChange={
+                                            (e) => {
+                                                const newTransaction: Transaction = {
+                                                    ...transaction,
+                                                    category: e.target.value
                                                 }
+                                                updateTransaction(newTransaction)
+                                            }
                                         }>
                                             <option value={
                                                 transaction.category
@@ -368,14 +330,16 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                                         } </Select>
                                     </Td>
                                     <Td textAlign='center'>
-                                        <Checkbox
-                                            alignSelf='center'
+                                        <Checkbox alignSelf='center'
                                             defaultChecked={
                                                 transaction.thirdparty
                                             }
                                             onChange={
                                                 (e) => {
-                                                    const newTransaction: Transaction = {...transaction, thirdparty: e.target.checked }
+                                                    const newTransaction: Transaction = {
+                                                        ...transaction,
+                                                        thirdparty: e.target.checked
+                                                    }
                                                     updateTransaction(newTransaction)
                                                 }
                                         }></Checkbox>
@@ -408,8 +372,8 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                         })
                     } </Tbody>
                 </Table>
-                }
-                
+            }
+
                 <Flex flexDir='row' alignSelf='flex-end'
                     mr={4}
                     my={2}
