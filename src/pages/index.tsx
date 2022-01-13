@@ -35,6 +35,10 @@ import {Doughnut, Line} from 'react-chartjs-2';
 import mastercardlogo from '../../public/mastercard.png'
 import visalogo from "../../public/visalogo.png";
 import {Image} from '@chakra-ui/react'
+import {CreditCard} from '../common/types/types';
+import {useEffect, useState} from 'react';
+import {fetchCards} from '../modules/cards/cards';
+import {fetchData} from 'next-auth/client/_utils';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -143,15 +147,8 @@ export const donutOptions = {
         ]
     };
 
-    export type CreditCardData = {
-        lastfourdigits: number,
-        name: string,
-        validthru: string,
-        company: string,
-        nickname: string
-    }
 
-    export const mastercardDummyData: CreditCardData = {
+    export const mastercardDummyData: CreditCard = {
         lastfourdigits: 4435,
         name: "Gabriel M Tomonari",
         validthru: "02/28",
@@ -159,7 +156,7 @@ export const donutOptions = {
         nickname: "LatamPass"
     }
 
-    export const visaDummyData: CreditCardData = {
+    export const visaDummyData: CreditCard = {
         lastfourdigits: 4435,
         name: "Gabriel M Tomonari",
         validthru: "02/28",
@@ -167,9 +164,8 @@ export const donutOptions = {
         nickname: "Pão de Açúcar"
     }
 
-    const Home: NextPage = () => {
+    const Home: NextPage = () => { // Check if authenticated ------------------------------
         const router = useRouter();
-
         const {data: session, status} = useSession({
             required: true,
             onUnauthenticated() {
@@ -177,15 +173,13 @@ export const donutOptions = {
             }
         })
 
-        if (status === "loading") {
+        // Cards -----------------------------------------------
+        const [cards, setcards] = useState < any > ()
+        useEffect(() => {
+            fetchCards().then((response) => setcards(response))
+        }, [])
 
-            return (
-                <Flex bgGradient='linear(to-l, #7928CA, #FF0080)' width='full' minH='100vh' align='center' justifyContent='center'>
-                    <CircularProgress isIndeterminate color='green.300'/>
-                </Flex>
-            )
-        }
-
+        console.log(cards)
 
         return (
             <Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
@@ -193,8 +187,92 @@ export const donutOptions = {
                     <title>MyFinance</title>
                 </Head>
                 <SideBar session={session}/>
-                <MiddleSection/>
-                <RightSection/>
+                <Flex width="55%" p="3%" flexDir="column" overflow="auto">
+                    <Heading mb={4}
+                        fontWeight="light"
+                        fontSize="3xl">Dashboard</Heading>
+                    <Flex flexDir='row' justifyContent='space-between' align='flex-end'>
+                        <Flex flexDir='column' backgroundColor='#edeaea'
+                            padding={5}
+                            borderRadius='10px'>
+                            <Text fontSize="sm">December expenses</Text>
+                            <Text fontSize="2xl" fontWeight='black'>R$ 2.000,00</Text>
+                        </Flex>
+                        <Flex flexDir='column' backgroundColor='#edeaea'
+                            padding={5}
+                            borderRadius='10px'>
+                            <Text fontSize='sm'>Third-party expenses</Text>
+                            <Text fontSize='2xl' fontWeight="bold">R$ 2.000,00</Text>
+                        </Flex>
+                        <Flex flexDir='column' backgroundColor='#edeaea'
+                            padding={5}
+                            borderRadius='10px'>
+                            <Text fontSize="sm">Next month installments</Text>
+                            <Text fontSize="2xl" fontWeight="bold">R$ 2.000,00</Text>
+                        </Flex>
+                    </Flex>
+                    <Flex flexDirection='row' justifyContent='space-around' maxH='320px'>
+                        <Flex width="45%" flexDirection="column">
+                            <Heading mt={8}
+                                mb={4}
+                                size="small">Info</Heading>
+                            <Table>
+                                <Thead>
+                                    <Tr>
+                                        <Th>Name</Th>
+                                        <Th>Value</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    <Tr>
+                                        <Td>Purchases in installments</Td>
+                                        <Td>5</Td>
+                                    </Tr>
+                                    <Tr>
+                                        <Td>Available limit: Latam</Td>
+                                        <Td>2000</Td>
+                                    </Tr>
+                                    <Tr>
+                                        <Td>Available limit: Pão de Açúcar</Td>
+                                        <Td>2000</Td>
+                                    </Tr>
+                                </Tbody>
+                            </Table>
+                        </Flex>
+                        <Flex width="48%" flexDirection="column">
+                            <Heading mt={8}
+                                mb={4}
+                                size="small">Expenses per category</Heading>
+                            <Doughnut data={donutData}
+                                options={donutOptions}/>
+                        </Flex>
+                    </Flex>
+                    <Heading mt={8}
+                        mb={4}
+                        size="small">Expenses history</Heading>
+                    <Line options={options}
+                        data={data}/>
+                </Flex>
+                <Flex width="35%" backgroundColor="#f5f5f5" overflow="auto" flexDir="column" p="3%">
+                    <Heading mb={4}
+                        fontWeight="light"
+                        fontSize="3xl">Credit Cards</Heading>
+                    <Flex>
+                        <Table className='credit-card-table'>
+                            <Tr className='active-card'>
+                                <Text>Show all cards</Text>
+                            </Tr>
+                            {
+                            cards && cards.map((card : CreditCard) => {
+                                return (
+                                    <Tr key={
+                                        card._id
+                                    }><CreditCardModel creditCardData={card}/></Tr>
+                                )
+                            })
+                        } </Table>
+                    </Flex>
+                </Flex>
             </Flex>
         )
 
@@ -216,8 +294,9 @@ export const donutOptions = {
                             <Link href='/'>
                                 <Icon.Home fontSize="2xl" className="active-icon"/>
                             </Link>
-                            <Link href='/' _hover={
-                                {textDecor: 'none'}
+                            <Link href='/'
+                                _hover={
+                                    {textDecor: 'none'}
                             }>
                                 <Text className='active-text'>Home</Text>
                             </Link>
@@ -226,8 +305,9 @@ export const donutOptions = {
                             <Link href='/transactions'>
                                 <Icon.DollarSign fontSize="2xl"/>
                             </Link>
-                            <Link href='/transactions' _hover={
-                                {textDecor: 'none'}
+                            <Link href='/transactions'
+                                _hover={
+                                    {textDecor: 'none'}
                             }>
                                 <Text>Transactions</Text>
                             </Link>
@@ -264,102 +344,8 @@ export const donutOptions = {
         )
     }
 
-    const MiddleSection = () => {
-        return (
-            <Flex width="55%" p="3%" flexDir="column" overflow="auto">
-                <Heading mb={4}
-                    fontWeight="light"
-                    fontSize="3xl">Dashboard</Heading>
-                <Flex flexDir='row' justifyContent='space-between' align='flex-end'>
-                    <Flex flexDir='column' backgroundColor='#edeaea'
-                        padding={5}
-                        borderRadius='10px'>
-                        <Text fontSize="sm">December expenses</Text>
-                        <Text fontSize="2xl" fontWeight='black'>R$ 2.000,00</Text>
-                    </Flex>
-                    <Flex flexDir='column' backgroundColor='#edeaea'
-                        padding={5}
-                        borderRadius='10px'>
-                        <Text fontSize='sm'>Third-party expenses</Text>
-                        <Text fontSize='2xl' fontWeight="bold">R$ 2.000,00</Text>
-                    </Flex>
-                    <Flex flexDir='column' backgroundColor='#edeaea'
-                        padding={5}
-                        borderRadius='10px'>
-                        <Text fontSize="sm">Next month installments</Text>
-                        <Text fontSize="2xl" fontWeight="bold">R$ 2.000,00</Text>
-                    </Flex>
-                </Flex>
-                <Flex flexDirection='row' justifyContent='space-around' maxH='320px'>
-                    <Flex width="45%" flexDirection="column" >
-                        <Heading mt={8}
-                            mb={4}
-                            size="small">Info</Heading>
-                        <Table>
-                            <Thead>
-                                <Tr>
-                                    <Th>Name</Th>
-                                    <Th>Value</Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                <Tr>
-                                    <Td>Purchases in installments</Td>
-                                    <Td>5</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td>Available limit: Latam</Td>
-                                    <Td>2000</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td>Available limit: Pão de Açúcar</Td>
-                                    <Td>2000</Td>
-                                </Tr>
-                            </Tbody>
-                        </Table>
-                    </Flex>
-                    <Flex width="48%" flexDirection="column">
-                        <Heading mt={8}
-                            mb={4}
-                            size="small">Expenses per category</Heading>
-                        <Doughnut data={donutData}
-                            options={donutOptions}/>
-                    </Flex>
-                </Flex>
-                <Heading mt={8}
-                    mb={4}
-                    size="small">Expenses history</Heading>
-                <Line options={options}
-                    data={data}/>
-            </Flex>
-        )
-    }
-
-    const RightSection = () => {
-        return (
-            <Flex width="35%" backgroundColor="#f5f5f5" overflow="auto" flexDir="column" p="3%">
-                <Heading mb={4}
-                    fontWeight="light"
-                    fontSize="3xl">Credit Cards</Heading>
-                <Flex>
-                    <Table className='credit-card-table'>
-                        <Tr className='active-card'>
-                            <Text>Show all cards</Text>
-                        </Tr>
-                        <Tr>
-                            <CreditCardModel creditCardData={mastercardDummyData}/>
-                        </Tr>
-                        <Tr>
-                            <CreditCardModel creditCardData={visaDummyData}/>
-                        </Tr>
-                    </Table>
-                </Flex>
-            </Flex>
-        )
-    }
-
     const CreditCardModel = (params : {
-        creditCardData: CreditCardData
+        creditCardData: CreditCard
     }) => {
         return (
             <Flex boxShadow='2xl' width="80%" height="10em" maxW='260px'
@@ -399,7 +385,7 @@ export const donutOptions = {
                         <Text fontSize='small'
                             mr={5}>
                             {
-                            params.creditCardData.validthru
+                            new Date(params.creditCardData.validthru).getMonth().toString() +'/'+ new Date(params.creditCardData.validthru).getFullYear()
                         }</Text>
                     </Flex>
                 </Flex>

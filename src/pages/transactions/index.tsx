@@ -51,13 +51,14 @@ import {
 import connectToDatabase from "../../modules/mongodb/mongodb";
 import {Category, Transaction} from '../../common/types/types';
 import EditModal from '../../common/components/elements/editTransactionForm/editTransactionForm';
+import { Session } from 'next-auth';
 
 
 export const getServerSideProps: GetServerSideProps = async (context : {
     req: any;
 }) => {
     const {db} = await connectToDatabase(context.req);
-    const categoriesData = await db.collection('categories').find({}).toArray();
+    const categoriesData = await db.collection('categories').find().toArray();
 
     return {
         props: {
@@ -67,12 +68,7 @@ export const getServerSideProps: GetServerSideProps = async (context : {
 }
 
 
-const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => { // Transaction Data manipulation -----------------------------
-    interface TransactionState {
-        id: string | undefined,
-        newcategory: string | undefined,
-        thirdpartyflag: boolean | undefined
-    }
+const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
     const fetchTransactions = async (limit : number, skip : number) => {
         setLoading(true)
@@ -199,6 +195,7 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
     const {isOpen, onOpen, onClose} = useDisclosure()
     const [transactiontobeedited, setTransactiontobeedited] = useState < Transaction > ({
         _id: "",
+        uid:"",
         date: new Date(),
         value: 0,
         name: "",
@@ -222,8 +219,6 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
             router.replace('/signin')
         }
     })
-
-    console.log(session)
 
     return (
         <Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
@@ -262,7 +257,11 @@ const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typ
                             onClick={nextPage}><ArrowForwardIcon/></Button>
                     </Flex>
                 </Flex>
-
+                {
+                loading && <Flex width='full' align='center' justifyContent='center'>
+                    <CircularProgress isIndeterminate color='green.300'/>
+                </Flex>
+            }
                 {
                 !loading && <Table variant='striped' width='max' size='sm'
                     ml={4}>

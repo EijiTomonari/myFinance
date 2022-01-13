@@ -29,8 +29,6 @@ export default NextAuth({ // Configure JWT
                             throw new Error('Password doesnt match');
                         }
 
-                        console.log(user)
-
                         return {email: user.email, id:user._id};
 
                     } catch (err) {

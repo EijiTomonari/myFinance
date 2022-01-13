@@ -107,6 +107,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
         const newArray: Transaction[] = rows.map(row => {
             const values = row.split(delim);
             const object: Transaction = {
+                uid:session!.user!.id!,
                 date: new Date(values[0]),
                 name: values[1],
                 value: parseFloat(values[2]),
@@ -253,6 +254,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                     e.preventDefault()
                     if (name && value && date && category && card) {
                         let newTransaction: Transaction = {
+                            uid:session!.user!.id,
                             value: parseFloat(value),
                             name: name,
                             date: date,
