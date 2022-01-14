@@ -164,7 +164,9 @@ export const donutOptions = {
         nickname: "Pão de Açúcar"
     }
 
-    const Home: NextPage = () => { // Check if authenticated ------------------------------
+    const Home: NextPage = () => {
+        
+        // Check if authenticated ------------------------------
         const router = useRouter();
         const {data: session, status} = useSession({
             required: true,
@@ -179,7 +181,14 @@ export const donutOptions = {
             fetchCards().then((response) => setcards(response))
         }, [])
 
-        console.log(cards)
+        // Select date -----------------------------------------
+        const today = new Date()
+        const [month, setmonth] = useState<string>((today.getMonth()+1).toString())
+        const [year, setyear] = useState<string>(today.getFullYear().toString())
+        console.log(month)
+
+        // Expenses --------------------------------------------
+        
 
         return (
             <Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
@@ -188,14 +197,36 @@ export const donutOptions = {
                 </Head>
                 <SideBar session={session}/>
                 <Flex width="55%" p="3%" flexDir="column" overflow="auto">
-                    <Heading mb={4}
-                        fontWeight="light"
-                        fontSize="3xl">Dashboard</Heading>
+                    <Flex flexDir='row' justifyContent='space-between'>
+                        <Heading mb={4}
+                            fontWeight="light"
+                            fontSize="3xl">Dashboard</Heading>
+                        <Flex flexDir='row' minW='28%'>
+                            <Select mr={2} defaultValue={month} onChange={(e)=>setmonth(e.target.value)}>
+                                <option value="1">Jan</option>
+                                <option value="2">Feb</option>
+                                <option value="3">Mar</option>
+                                <option value="4">Apr</option>
+                                <option value="5">May</option>
+                                <option value="6">Jun</option>
+                                <option value="7">Jul</option>
+                                <option value="8">Aug</option>
+                                <option value="9">Sep</option>
+                                <option value="10">Oct</option>
+                                <option value="11">Nov</option>
+                                <option value="12">Dec</option>
+                            </Select>
+                            <Select defaultValue={year} onChange={(e)=>setyear(e.target.value)}>
+                                <option value="2021">2021</option>
+                                <option value="2022">2022</option>
+                            </Select>
+                        </Flex>
+                    </Flex>
                     <Flex flexDir='row' justifyContent='space-between' align='flex-end'>
                         <Flex flexDir='column' backgroundColor='#edeaea'
                             padding={5}
                             borderRadius='10px'>
-                            <Text fontSize="sm">December expenses</Text>
+                            <Text fontSize="sm">Total expenses</Text>
                             <Text fontSize="2xl" fontWeight='black'>R$ 2.000,00</Text>
                         </Flex>
                         <Flex flexDir='column' backgroundColor='#edeaea'
