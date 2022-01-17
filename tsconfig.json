@@ -15,6 +15,6 @@
     "jsx": "preserve",
     "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/pages/api/cards.js", "src/pages/api/transactions.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/pages/api/cards.ts", "src/pages/api/transactions.js"],
   "exclude": ["node_modules"]
 }
