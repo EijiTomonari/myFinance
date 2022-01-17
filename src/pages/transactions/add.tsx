@@ -24,8 +24,7 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react'
 import * as Icon from 'react-feather';
 import connectToDatabase from "../../modules/mongodb/mongodb";
-import {CreditCardData} from '..';
-import {Category, Transaction} from '../../common/types/types';
+import {Category, CreditCard, Transaction} from '../../common/types/types';
 
 const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
 
@@ -218,7 +217,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                         setCard(e.target.value)
                     }
             }> {
-                cardsData.map((card : CreditCardData) => (<option value={
+                cardsData.map((card : CreditCard) => (<option value={
                     card.lastfourdigits
                 }> {
                     card.lastfourdigits + " - " + card.nickname
@@ -290,7 +289,7 @@ const Transactions: NextPage = ({cardsData, categoriesData} : InferGetServerSide
                     setCard(e.target.value)
                 }
         }> {
-            cardsData.map((card : CreditCardData) => (<option value={
+            cardsData.map((card : CreditCard) => (<option value={
                 card.lastfourdigits
             }> {
                 card.lastfourdigits + " - " + card.nickname

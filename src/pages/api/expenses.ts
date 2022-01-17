@@ -76,7 +76,7 @@ const getExpenses = async (req : NextApiRequest, res : NextApiResponse, session 
                                     $gte: new Date((initialdate).toISOString()),
                                     $lt: new Date(finaldate.toISOString())
                                 },
-                                thirdparty: true
+                                $expr:{$gt:["$installments","$installment"]}
                             }
                         }, {
                             $group: {

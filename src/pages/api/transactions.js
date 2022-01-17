@@ -38,7 +38,9 @@ const addTransaction = async (req, res) => {
     try {
         const {db} = await connectToDatabase();
         // add the post
-        await db.collection('transactions').insertOne(JSON.parse(req.body));
+        const json = (JSON.parse(req.body))
+        json.date = new Date(json.date)
+        await db.collection('transactions').insertOne(json);
         // return a message
         return res.json({message: 'Transaction added successfully', success: true});
     } catch (error) { // return an error
