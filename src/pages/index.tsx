@@ -5,7 +5,6 @@ import {
     Input,
     Link,
     Text,
-    Select,
     Table,
     Th,
     Td,
@@ -13,11 +12,10 @@ import {
     Thead,
     Tbody
 } from '@chakra-ui/react'
-import {useSession, signIn, signOut} from "next-auth/react"
+import {useSession, signOut} from "next-auth/react"
 import type {NextPage}
 from 'next'
 import {useRouter} from "next/router";
-import {CircularProgress, CircularProgressLabel} from '@chakra-ui/react'
 import Head from 'next/head';
 import * as Icon from 'react-feather';
 import {
@@ -38,8 +36,7 @@ import {Image} from '@chakra-ui/react'
 import {CreditCard, Expenses} from '../common/types/types';
 import {useEffect, useState} from 'react';
 import {fetchCards} from '../modules/cards/cards';
-import {fetchData} from 'next-auth/client/_utils';
-import { fetchExpenses } from '../modules/dashboard/expenses';
+import { fetchExpenses, getCategoriesChartData } from '../modules/dashboard/expenses';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -108,47 +105,6 @@ export const donutOptions = {
         ]
     };
 
-    export const donutData = {
-        labels: [
-            'Travel',
-            'Rent',
-            'Food',
-            'Transport',
-            'Shopping',
-            'Education'
-        ],
-        datasets: [
-            {
-                data: [
-                    12,
-                    19,
-                    3,
-                    5,
-                    2,
-                    3
-                ],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                ],
-                borderWidth: 1
-            },
-        ]
-    };
-
-
     export const mastercardDummyData: CreditCard = {
         lastfourdigits: 4435,
         name: "Gabriel M Tomonari",
@@ -184,9 +140,8 @@ export const donutOptions = {
         const [initialdate, setinitialdate] = useState < string > (new Date().toISOString().slice(0, 7))
         const [expenses, setexpenses] = useState<Expenses>()
         useEffect(() => {
-            fetchExpenses(initialdate).then((response)=>{setexpenses(response)})
+            fetchExpenses(initialdate).then((response)=>{setexpenses(response)});
         }, [initialdate])
-
 
         return (<Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
             <Head>
@@ -261,7 +216,7 @@ export const donutOptions = {
                     <Heading mt={8}
                         mb={4}
                         size="small">Expenses per category</Heading>
-                    <Doughnut data={donutData}
+                    <Doughnut data={getCategoriesChartData(expenses)!}
                         options={donutOptions}/>
                 </Flex>
             </Flex>

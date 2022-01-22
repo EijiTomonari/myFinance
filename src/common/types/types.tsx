@@ -46,4 +46,10 @@ export type Expenses = {
             value: number
         }
     ],
+    expensespercategory:[
+        {
+            _id: string,
+            value:number
+        }
+    ]
 }
