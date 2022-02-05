@@ -1,463 +1,176 @@
 import {
-    CircularProgress,
-    Flex,
-    Heading,
-    Link,
-    Text,
-    Button,
-    Table,
-    Thead,
-    Tr,
-    Th,
-    Tbody,
-    Td,
-    Tooltip,
-    Select,
-    Checkbox,
-    useToast,
-    useDisclosure,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalCloseButton,
-    ModalBody,
-    ModalFooter,
-    Input,
-    InputGroup,
-    InputLeftAddon
-} from '@chakra-ui/react';
-import {GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, NextPage} from 'next';
-import {signOut, useSession} from 'next-auth/react';
-import Head from 'next/head';
-import {useRouter} from 'next/router';
-import React, {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState
-} from 'react'
-import * as Icon from 'react-feather';
+  CircularProgress,
+  Flex,
+  Heading,
+  Link,
+  Button,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+} from "@chakra-ui/react";
+import { NextPage } from "next";
+import { useSession } from "next-auth/react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import {
-    DeleteIcon,
-    EditIcon,
-    AddIcon,
-    ArrowBackIcon,
-    ArrowForwardIcon,
-    CalendarIcon
-} from '@chakra-ui/icons';
-import connectToDatabase from "../../modules/mongodb/mongodb";
-import {Category, Transaction} from '../../common/types/types';
-import EditModal from '../../common/components/elements/editTransactionForm/editTransactionForm';
-import { Session } from 'next-auth';
+  AddIcon,
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  CheckCircleIcon,
+  EditIcon,
+} from "@chakra-ui/icons";
+import { Transaction } from "../../common/types/types";
+import SideBar from "../../common/components/elements/sideBar/sideBar";
+import { fetchCategories } from "../../modules/categories/categoriesDatabaseServices";
+import fetchTransactions from "../../modules/transactions/database/transactionsDatabaseServices";
+import TransactionTableRow from "../../common/components/elements/transactions/transactionTableRow";
+import TransactionTableRowEditForm from "../../common/components/elements/transactions/transactionTableRowEditForm";
 
+const Transactions: NextPage = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const { data: session } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.replace("/signin");
+    },
+  });
 
-export const getServerSideProps: GetServerSideProps = async (context : {
-    req: any;
-}) => {
-    const {db} = await connectToDatabase(context.req);
-    const categoriesData = await db.collection('categories').find().toArray();
-
-    return {
-        props: {
-            categories: JSON.parse(JSON.stringify(categoriesData))
-        }
-    };
-}
-
-
-const Transactions: NextPage = ({categories} : InferGetServerSidePropsType < typeof getServerSideProps >) => {
-
-    const fetchTransactions = async (limit : number, skip : number) => {
-        setLoading(true)
-        try {
-            let response = await fetch(`/api/transactions?limit=${limit}&skip=${skip}`, {method: 'GET'})
-            let data = await response.json()
-            setTransactions(data.message)
-            setLoading(false)
-        } catch (error) {
-            console.log(error)
-            setLoading(false)
-        }
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      const data = await fetchCategories();
+      setCategories(data);
     }
+    fetchData();
+  }, []);
 
-    const updateTransaction = async (newTransaction : Transaction) => {
-        const newTransactions: Transaction[] = [...transactions];
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [limit, setLimit] = useState(30);
+  const [skip, setSkip] = useState(0);
 
-        const index = transactions.findIndex((transaction : Transaction) => transaction._id == newTransaction._id)
+  const nextPage = () => {
+    setSkip(skip + limit);
+  };
 
-        newTransactions[index] = newTransaction
+  const previousPage = () => {
+    setSkip(skip - limit);
+  };
 
-        // debugger;
-        setTransactions(newTransactions);
-
-        setEditing(true)
-        try {
-            let response = await fetch('/api/transactions', {
-                method: 'PUT',
-                body: JSON.stringify(
-                    {_id: newTransaction._id, category: newTransaction.category, thirdparty: newTransaction.thirdparty}
-                )
-            })
-            let data = await response.json();
-            if (data.success) {
-                setEditing(false)
-                return(toast({
-                    title: "OK",
-                    description: "Transaction updated",
-                    status: 'success',
-                    duration: 1000,
-                    isClosable: true
-                }))
-            } else {
-                setEditing(false)
-                return(toast({
-                    title: "Something went wrong",
-                    description: data.message,
-                    status: 'error',
-                    duration: 2000,
-                    isClosable: true
-                }))
-            }
-        } catch (error) {
-            setEditing(false)
-            return(toast({
-                title: "Something went wrong",
-                description: error as string,
-                status: 'error',
-                duration: 2000,
-                isClosable: true
-            }))
-        }
+  useEffect(() => {
+    setLoading(true);
+    async function fetchData() {
+      const data = await fetchTransactions(limit, skip);
+      setTransactions(data);
     }
+    fetchData();
+    setLoading(false);
+  }, [skip, limit]);
 
-    const deleteTransaction = async (id : string | undefined) => {
-        try {
-            let response = await fetch('/api/transactions', {
-                method: 'DELETE',
-                body: JSON.stringify(
-                    {_id: id}
-                )
-            })
-            let data = await response.json();
-            if (data.success) {
-                return(toast({
-                    title: "OK",
-                    description: "Transaction deleted",
-                    status: 'success',
-                    duration: 1000,
-                    isClosable: true
-                }))
-            } else {
-                return(toast({
-                    title: "Something went wrong",
-                    description: data.message,
-                    status: 'error',
-                    duration: 2000,
-                    isClosable: true
-                }))
-            }
-        } catch (error) {
-            return(toast({
-                title: "Something went wrong",
-                description: error as string,
-                status: 'error',
-                duration: 2000,
-                isClosable: true
-            }))
-        }
-    }
-    // -----------------------------------------------------------
-
-
-    // Pagination ------------------------------
-    const [transactions, setTransactions] = useState < Transaction[] > ([]);
-    const [collectionsize, setCollectionsize] = useState(0)
-    const [limit, setLimit] = useState(30);
-    const [skip, setSkip] = useState(0);
-
-    const nextPage = () => {
-        setSkip(skip + limit)
-    }
-
-    const previousPage = () => {
-        setSkip(skip - limit)
-    }
-
-    useEffect(() => {
-        fetchTransactions(limit, skip)
-    }, [skip, limit])
-    // -----------------------------------------
-
-    // Modal ------------------------------
-    const {isOpen, onOpen, onClose} = useDisclosure()
-    const [transactiontobeedited, setTransactiontobeedited] = useState < Transaction > ({
-        _id: "",
-        uid:"",
-        date: new Date(),
-        value: 0,
-        name: "",
-        card: "",
-        installment: 0,
-        installments: 0,
-        category: "",
-        thirdparty: false
-
-    })
-
-    const router = useRouter()
-    const toast = useToast()
-    const [editing, setEditing] = useState(false)
-    const [loading, setLoading] = useState(false)
-
-
-    const {data: session, status} = useSession({
-        required: true,
-        onUnauthenticated() {
-            router.replace('/signin')
-        }
-    })
-
-    return (
-        <Flex h="100vh" flexDir='row' overflow="hidden" maxW="2000px">
-            <Head>
-                <title>MyFinance</title>
-            </Head>
-            <SideBar session={session}/>
-            <Flex flexDir='column' overflowY='auto'>
-                <Heading mb={2}
-                    ml={4}
-                    mt={4}
-                    fontWeight="light"
-                    fontSize="3xl">Transactions</Heading>
-                <Flex flexDir='row' justifyContent='space-between'>
-                    <EditModal isOpen={isOpen}
-                        onClose={onClose}
-                        transaction={transactiontobeedited}/>
-                    <Link href='/transactions/add'>
-                        <Button leftIcon={<AddIcon/>}
-                            backgroundColor='green.200'
-                            py={4}
-                            px={7}
-                            my={4}
-                            ml={4}>Add Transactions</Button>
-                    </Link>
-                    <Flex flexDir='row' alignSelf='center'
-                        mr={4}>
-                        <Button isDisabled={
-                                skip == 0
-                            }
-                            onClick={previousPage}
-                            mr={4}><ArrowBackIcon/></Button>
-                        <Button isDisabled={
-                                transactions.length < limit
-                            }
-                            onClick={nextPage}><ArrowForwardIcon/></Button>
-                    </Flex>
-                </Flex>
-                {
-                loading && <Flex width='full' align='center' justifyContent='center'>
-                    <CircularProgress isIndeterminate color='green.300'/>
-                </Flex>
-            }
-                {
-                !loading && <Table variant='striped' width='max' size='sm'
-                    ml={4}>
-                    <Thead>
-                        <Tr>
-                            <Th>Date</Th>
-                            <Th>Name</Th>
-                            <Th>Installment</Th>
-                            <Th>Total Installments</Th>
-                            <Th>Category</Th>
-                            <Th>Third-party</Th>
-                            <Th>Value</Th>
-                            <Th>Actions</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody fontSize='smaller'>
-                        {
-                        transactions.map((transaction : Transaction) => {
-                            return (
-                                <Tr key={
-                                    transaction._id
-                                }>
-                                    <Td>{
-                                        new Date(transaction.date).toLocaleDateString("pt-BR")
-                                    }</Td>
-                                    <Td>{
-                                        transaction.name
-                                    }</Td>
-                                    <Td textAlign='center'>
-                                        {
-                                        transaction.installment
-                                    }</Td>
-                                    <Td textAlign='center'>
-                                        {
-                                        transaction.installments
-                                    }</Td>
-                                    <Td>
-                                        <Select onChange={
-                                            (e) => {
-                                                const newTransaction: Transaction = {
-                                                    ...transaction,
-                                                    category: e.target.value
-                                                }
-                                                updateTransaction(newTransaction)
-                                            }
-                                        }>
-                                            <option value={
-                                                transaction.category
-                                            }>
-                                                {
-                                                transaction.category
-                                            }</option>
-                                            {
-                                            categories.map((category : Category) => {
-                                                return (
-                                                    <option key={
-                                                            category.name
-                                                        }
-                                                        value={
-                                                            category.name
-                                                    }>
-                                                        {
-                                                        category.name
-                                                    }</option>
-                                                )
-                                            })
-                                        }</Select>
-                                    </Td>
-                                    <Td textAlign='center'>
-                                        <Checkbox alignSelf='center'
-                                            defaultChecked={
-                                                transaction.thirdparty
-                                            }
-                                            onChange={
-                                                (e) => {
-                                                    const newTransaction: Transaction = {
-                                                        ...transaction,
-                                                        thirdparty: e.target.checked
-                                                    }
-                                                    updateTransaction(newTransaction)
-                                                }
-                                        }></Checkbox>
-                                </Td>
-                                <Td>{
-                                    "R$ " + transaction.value
-                                }</Td>
-                                <Td>
-                                    <Flex flexDir='row'>
-                                        <Tooltip label='Edit'>
-                                            <Button onClick={onOpen}
-                                                name='Edit'
-                                                colorScheme='yellow'><EditIcon/></Button>
-                                        </Tooltip>
-                                        <Tooltip label='Delete'>
-                                            <Button ml={2}
-                                                onClick={
-                                                    (e) => {
-                                                        e.preventDefault()
-                                                        deleteTransaction(transaction._id)
-                                                        fetchTransactions(limit, skip)
-                                                    }
-                                                }
-                                                colorScheme='red'><DeleteIcon/></Button>
-                                        </Tooltip>
-                                    </Flex>
-                                </Td>
-                            </Tr>
-                            );
-                        })
-                    } </Tbody>
-                </Table>
-            }
-
-                <Flex flexDir='row' alignSelf='flex-end'
-                    mr={4}
-                    my={2}
-                    justifyContent='end'>
-
-                    <Button isDisabled={
-                            skip == 0
-                        }
-                        onClick={previousPage}
-                        mr={4}><ArrowBackIcon/></Button>
-                    <Button isDisabled={
-                            transactions.length < limit
-                        }
-                        onClick={nextPage}><ArrowForwardIcon/></Button>
-                </Flex>
-            </Flex>
+  return (
+    <Flex h="100vh" flexDir="row" overflow="hidden">
+      <Head>
+        <title>MyFinance</title>
+      </Head>
+      <SideBar session={session} />
+      <Flex flexDir="column" overflowY="auto" w={"100%"} overflowX="hidden">
+        <Heading mb={2} ml={4} mt={4} fontWeight="light" fontSize="3xl">
+          Transactions
+        </Heading>
+        <Flex flexDir="row" justifyContent="space-between">
+          <Flex dir="row">
+            <Link href="/transactions/add">
+              <Button
+                leftIcon={<AddIcon />}
+                backgroundColor="green.200"
+                py={4}
+                px={7}
+                my={4}
+                ml={4}
+              >
+                Add Transactions
+              </Button>
+            </Link>
+            <Button
+              leftIcon={isEditing ? <CheckCircleIcon /> : <EditIcon />}
+              backgroundColor="yellow.200"
+              py={4}
+              px={7}
+              my={4}
+              ml={4}
+              onClick={(e) => setIsEditing(!isEditing)}
+            >
+              {isEditing ? "Exit Edit Mode" : "Edit Mode"}
+            </Button>
+          </Flex>
+          <Flex flexDir="row" alignSelf="center" mr={4}>
+            <Button isDisabled={skip == 0} onClick={previousPage} mr={4}>
+              <ArrowBackIcon />
+            </Button>
+            <Button isDisabled={transactions.length < limit} onClick={nextPage}>
+              <ArrowForwardIcon />
+            </Button>
+          </Flex>
         </Flex>
-    )
-}
+        {loading && (
+          <Flex width="full" align="center" justifyContent="center">
+            <CircularProgress isIndeterminate color="green.300" />
+          </Flex>
+        )}
+        {!loading && (
+          <Table ml={4}>
+            <Thead>
+              <Tr>
+                <Th>Date</Th>
+                <Th>Name</Th>
+                <Th textAlign={"center"}>Installment</Th>
+                <Th textAlign={"center"}>Total Installments</Th>
+                <Th>Category</Th>
+                <Th textAlign={"center"}>Third-party</Th>
+                <Th>Value</Th>
+                {isEditing && <Th>Actions</Th>}
+              </Tr>
+            </Thead>
+            <Tbody fontSize="smaller">
+              {transactions.map((transaction: Transaction) => {
+                return (
+                  <Tr key={transaction._id}>
+                    {isEditing ? (
+                      <TransactionTableRowEditForm
+                        transaction={transaction}
+                        categories={categories}
+                      />
+                    ) : (
+                      <TransactionTableRow transaction={transaction} />
+                    )}
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        )}
 
-const SideBar = (params : any) => {
-    return (
-        <Flex width="15%" flexDir="column" alignItems="center" backgroundColor="#020202" color="white" justifyContent='space-between'>
-
-            <Flex flexDir="column" as="nav">
-                <Heading size="lg"
-                    mt={50}
-                    mb={100}
-                    alignSelf="center"
-                    letterSpacing="tight">MyFinance</Heading>
-                <Flex flexDir="column" align="flex-start" justifyContent="center">
-                    <Flex className='side-bar-item'>
-                        <Link href='/'>
-                            <Icon.Home fontSize="2xl"/>
-                        </Link>
-                        <Link href='/'
-                            _hover={
-                                {textDecor: 'none'}
-                        }>
-                            <Text>Home</Text>
-                        </Link>
-                    </Flex>
-                    <Flex className='side-bar-item'>
-                        <Link href='/transactions'>
-                            <Icon.DollarSign fontSize="2xl" className="active-icon"/>
-                        </Link>
-                        <Link href='/transactions'
-                            _hover={
-                                {textDecor: 'none'}
-                        }>
-                            <Text className='active-text'>Transactions</Text>
-                        </Link>
-                    </Flex>
-                    <Flex className='side-bar-item'>
-                        <Link>
-                            <Icon.CreditCard fontSize="2xl"/>
-                        </Link>
-                        <Link _hover={
-                            {textDecor: 'none'}
-                        }>
-                            <Text>Cards</Text>
-                        </Link>
-                    </Flex>
-                </Flex>
-            </Flex>
-            <Flex flexDir="column">
-                <Text fontSize="small" alignSelf="center">Signed in as</Text>
-                <Text fontSize="small"
-                    mb={5}>
-                    {
-                    params.session ?. user ?. email
-                }</Text>
-                <Button mb={5}
-                    alignSelf="center"
-                    backgroundColor="gray"
-                    size="xs"
-                    width="50%"
-                    onClick={
-                        () => signOut({callbackUrl: 'http://localhost:3000/signin'})
-                }>Sign Out</Button>
-            </Flex>
+        <Flex
+          flexDir="row"
+          alignSelf="flex-end"
+          mr={4}
+          my={2}
+          justifyContent="end"
+        >
+          <Button isDisabled={skip == 0} onClick={previousPage} mr={4}>
+            <ArrowBackIcon />
+          </Button>
+          <Button isDisabled={transactions.length < limit} onClick={nextPage}>
+            <ArrowForwardIcon />
+          </Button>
         </Flex>
-    )
-}
+      </Flex>
+    </Flex>
+  );
+};
 
-export default Transactions
+export default Transactions;

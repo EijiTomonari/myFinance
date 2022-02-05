@@ -3,7 +3,7 @@ import {MongoClient} from 'mongodb';
 let cachedClient = null;
 let cachedDb = null;
 
-const connectToDatabase = async (req, res) => {
+const connectToDatabase = async () => {
     const { MONGODB_URI, MONGODB_DB } = process.env;
     
     // Checl the cached.
